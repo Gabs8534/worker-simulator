@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 66c63f69926b2e1428dbb9defc48d746
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - slotDaTela: {instanceID: 0}
+  - quadradinhoVermelho: {fileID: 7391956853278722744, guid: 3d1db96af955d784cb4ca3da12ab3767, type: 3}
+  - textoNomeDoItem: {instanceID: 0}
+  - imagemVazia: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
