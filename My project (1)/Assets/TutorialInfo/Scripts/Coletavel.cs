@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using TMPro; // <-- 1. Adicione esta linha no topo do script
 
 public class Coletavel : MonoBehaviour
 {
@@ -9,19 +10,37 @@ public class Coletavel : MonoBehaviour
     public float velocidadeFlutuacao = 1f;
 
     [Header("Configurações de Coleta")]
-    public float duracaoAnimacaoSumir = 0.5f; // Tempo em segundos para encolher
+    public float duracaoAnimacaoSumir = 0.5f;
 
     private Vector3 posicaoInicial;
     private bool coletado = false;
 
+    // Contador estático global (máximo 10)
+    public static int objetosColetadosTotais = 0;
+    public const int limiteMaximoObjetos = 10;
+
+    // <-- 2. Referência para o texto na tela
+    private static TextMeshProUGUI textoContador;
+
     void Start()
     {
         posicaoInicial = transform.position;
+
+        // Procura o texto na cena automaticamente pelo nome do GameObject (substitua "TextoContador" pelo nome exato do seu objeto de texto na Hierarchy)
+        if (textoContador == null)
+        {
+            GameObject objetoTexto = GameObject.Find("TextoContador");
+            if (objetoTexto != null)
+            {
+                textoContador = objetoTexto.GetComponent<TextMeshProUGUI>();
+            }
+        }
+
+        AtualizarTextoUI();
     }
 
     void Update()
     {
-        // 1. ESTADO NORMAL: Flutua e gira enquanto não for coletado
         if (!coletado)
         {
             transform.Rotate(velocidadeRotacao * Time.deltaTime);
@@ -34,14 +53,24 @@ public class Coletavel : MonoBehaviour
     {
         if (!coletado)
         {
-            // --- O SEU CÓDIGO DAS PORTAS (MANTIDO) ---
+            if (objetosColetadosTotais >= limiteMaximoObjetos)
+            {
+                Debug.Log("Você já coletou o limite máximo de 10 objetos!");
+                return;
+            }
+
+            // Incrementa a contagem
+            objetosColetadosTotais++;
+            AtualizarTextoUI(); // Atualiza na tela na mesma hora
+
+            // --- CÓDIGO DAS PORTAS ---
             PortaAutomatica[] todasAsPortas = FindObjectsByType<PortaAutomatica>(FindObjectsSortMode.None);
             foreach (PortaAutomatica porta in todasAsPortas)
             {
                 porta.SomarObjeto();
             }
 
-            // --- AVISA TODOS OS PERSEGUIDORES DA CENA ---
+            // --- AVISA OS PERSEGUIDORES ---
             Perseguidor[] todosOsPerseguidores = FindObjectsByType<Perseguidor>(FindObjectsSortMode.None);
             foreach (Perseguidor inimigo in todosOsPerseguidores)
             {
@@ -52,15 +81,22 @@ public class Coletavel : MonoBehaviour
         }
     }
 
-    // ANIMAÇÃO DE SUMIR: Executada ao longo do tempo (Corrotina)
+    // Função para atualizar o texto visualmente
+    private void AtualizarTextoUI()
+    {
+        if (textoContador != null)
+        {
+            textoContador.text = $"{objetosColetadosTotais} / {limiteMaximoObjetos}";
+        }
+    }
+
     private IEnumerator AnimacaoColeta()
     {
-        coletado = true; // Para o movimento do Update imediatamente
+        coletado = true;
 
         Vector3 escalaInicial = transform.localScale;
         float tempoDecorrido = 0f;
 
-        // Desliga o colisor para evitar múltiplos cliques no mesmo item
         if (TryGetComponent<Collider>(out Collider colisor)) colisor.enabled = false;
         if (TryGetComponent<Collider2D>(out Collider2D colisor2D)) colisor2D.enabled = false;
 
