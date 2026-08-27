@@ -8,4 +8,8 @@ public class MenuController : MonoBehaviour
         // Coloque aqui o nome exato da sua cena entre aspas
         SceneManager.LoadScene("SampleSceneWorker");
     }
+    private void Start()
+    {
+        Cursor.lockState = CursorLockMode.None;
+    }
 }

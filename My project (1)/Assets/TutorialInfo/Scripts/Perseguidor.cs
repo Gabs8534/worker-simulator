@@ -18,10 +18,16 @@ public class Perseguidor : MonoBehaviour
     public float aceleracaoInimigo = 4.0f;
 
     [Header("Configurações do Jumpscare de Foco")]
-    [Tooltip("Tempo que o jogador fica olhando para a cara do monstro antes do jogo reiniciar.")]
+    [Tooltip("Tempo que o jogador fica olhando para a cara do monstro antes de mudar de cena.")]
     public float tempoDeSusto = 2.0f;
     [Tooltip("Ajuste de altura para a câmera olhar (ex: olhar para a cabeça do monstro).")]
     public float ajusteAlturaOlhar = 1.5f;
+
+    [Header("Configuração de Fim de Jogo")]
+    [Tooltip("Nome exato da cena para onde o jogador vai ao morrer.")]
+    public string nomeCenaMenu = "New Scene";
+    [Tooltip("Se marcado, reinicia a fase atual. Se desmarcado, vai para a cena configurada acima.")]
+    public bool reiniciarFaseAtual = false;
 
     [Header("Efeito de Tremor (Screen Shake)")]
     [Tooltip("Força do tremor. Valores entre 0.1 e 0.5 já são bem fortes!")]
@@ -145,7 +151,15 @@ public class Perseguidor : MonoBehaviour
 
         yield return new WaitForSeconds(tempoDeSusto);
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // Verifica se o usuário quer reiniciar a fase ou ir para a cena de menu
+        if (reiniciarFaseAtual)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+        else
+        {
+            SceneManager.LoadScene(nomeCenaMenu);
+        }
     }
 
     // Função interna que calcula a posição correta e spawna a moeda ao lado
