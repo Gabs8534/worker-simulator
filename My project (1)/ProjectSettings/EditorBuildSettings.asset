@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleSceneWorker.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
+    path: Assets/Scenes/game over.unity
+    guid: ca8b6cd446f2ea64ab69b310bb86431b
+  - enabled: 1
     path: Assets/Scenes/New Scene.unity
     guid: a4b97348f2931c849a68aa37d9fc3e76
   m_configObjects:
