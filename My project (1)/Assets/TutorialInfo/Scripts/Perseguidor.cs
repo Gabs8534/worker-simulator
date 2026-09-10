@@ -12,6 +12,7 @@ public class Perseguidor : MonoBehaviour
     private int itensColetados = 0;
     public int itensNecessarios = 2;
     private bool podePerseguir = false;
+    private bool jaTeleportou = false; // Trava para garantir que o teleporte só ocorra 1 vez
 
     [Header("Configurações de Teleporte do Perseguidor")]
     [Tooltip("Arraste aqui o GameObject vazio (Transform) para onde o monstro será teleportado ao pegar os 2 itens.")]
@@ -20,8 +21,6 @@ public class Perseguidor : MonoBehaviour
     [Header("Configurações de Velocidade")]
     public float velocidadeModerada = 2.0f;
     public float aceleracaoInimigo = 4.0f;
-    [Tooltip("Quanto a velocidade do monstro aumenta a cada novo objeto coletado.")]
-    public float aumentoVelocidadePorItem = 0.5f;
 
     [Header("Configurações do Jumpscare de Foco")]
     [Tooltip("Tempo que o jogador fica olhando para a cara do monstro antes de mudar de cena.")]
@@ -51,12 +50,16 @@ public class Perseguidor : MonoBehaviour
     [Tooltip("Distância para o lado que a moeda vai spawnar para não ficar dentro do corpo.")]
     public float distanciaLadoMoeda = 1.2f;
 
-    private bool moedaJaDropou = false; // Garante que só vai soltar uma moeda no total
+    private bool moedaJaDropou = false;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        if (agent != null) agent.enabled = false;
+
+        if (agent != null)
+        {
+            agent.enabled = false;
+        }
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
@@ -88,28 +91,23 @@ public class Perseguidor : MonoBehaviour
     }
 
     // ====================================================================
-    // REGISTRAR COLETA: MOEDA, TELEPORTE, VELOCIDADE E PERSEGUIÇÃO
+    // REGISTRAR COLETA
     // ====================================================================
     public void RegistrarColeta()
     {
         itensColetados++;
 
-        // 1. Dropa a moeda IMEDIATAMENTE (no primeiro objeto coletado)
+        // 1. Dropa a moeda no primeiro objeto coletado
         if (!moedaJaDropou)
         {
             DroparMoedaFisica();
             moedaJaDropou = true;
         }
 
-        // 2. Se já estiver a perseguir, aumenta a velocidade a cada novo item coletado
-        if (podePerseguir && agent != null)
+        // 2. Só teleporta e ativa a perseguição se atingiu a meta E ainda não tiver feito isso antes
+        if (itensColetados >= itensNecessarios && !jaTeleportou)
         {
-            agent.speed += aumentoVelocidadePorItem;
-        }
-
-        // 3. Quando atingir a meta de itens (ex: 2), teleporta o monstro e ativa a perseguição
-        if (itensColetados >= itensNecessarios)
-        {
+            jaTeleportou = true; // Trava ativada para nunca mais repetir
             TeleportarMonstro();
             ComeçarAPerseguir();
         }
@@ -138,8 +136,7 @@ public class Perseguidor : MonoBehaviour
         if (agent != null)
         {
             agent.enabled = true;
-            // Define a velocidade inicial base, somando o bônus dos itens já coletados
-            agent.speed = velocidadeModerada + (itensColetados * aumentoVelocidadePorItem);
+            agent.speed = velocidadeModerada;
             agent.acceleration = aceleracaoInimigo;
         }
     }

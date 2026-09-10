@@ -2101,6 +2101,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &80662746
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4548,6 +4550,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &152384498
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6518,6 +6522,7 @@ GameObject:
   - component: {fileID: 227825547}
   - component: {fileID: 227825546}
   - component: {fileID: 227825545}
+  - component: {fileID: 227825549}
   m_Layer: 0
   m_Name: Cube (4)
   m_TagString: Untagged
@@ -6617,6 +6622,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90.81201, y: 0, z: -1.0720215}
+--- !u!114 &227825549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 227825544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98c708382edc86b45978e0eb0728fb3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorController
+  isWinningDoor: 0
 --- !u!1 &243773564
 GameObject:
   m_ObjectHideFlags: 0
@@ -9316,6 +9334,7 @@ GameObject:
   - component: {fileID: 315775880}
   - component: {fileID: 315775879}
   - component: {fileID: 315775878}
+  - component: {fileID: 315775882}
   m_Layer: 0
   m_Name: Cube (3)
   m_TagString: Untagged
@@ -9415,6 +9434,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90.81201, y: 0, z: 0}
+--- !u!114 &315775882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 315775877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98c708382edc86b45978e0eb0728fb3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorController
+  isWinningDoor: 0
 --- !u!1 &318559315
 GameObject:
   m_ObjectHideFlags: 0
@@ -15597,6 +15629,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &548102342
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -20952,6 +20986,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &783033108
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -24557,6 +24593,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &935437610
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -33064,6 +33102,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &1313726853
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -36569,6 +36609,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &1423024619
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -37725,6 +37767,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &1465608621
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47679,6 +47723,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &1753867010
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -54086,6 +54132,8 @@ MonoBehaviour:
   amplitude: 0.1
   velocidadeFlutuacao: 1
   duracaoAnimacaoSumir: 0.5
+  directionalLight: {fileID: 0}
+  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
 --- !u!65 &1981438131
 BoxCollider:
   m_ObjectHideFlags: 0

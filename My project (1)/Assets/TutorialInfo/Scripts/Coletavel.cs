@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-using TMPro; // <-- 1. Adicione esta linha no topo do script
+using TMPro;
 
 public class Coletavel : MonoBehaviour
 {
@@ -19,14 +19,33 @@ public class Coletavel : MonoBehaviour
     public static int objetosColetadosTotais = 0;
     public const int limiteMaximoObjetos = 10;
 
-    // <-- 2. Referência para o texto na tela
+    // Referência para o texto na tela
     private static TextMeshProUGUI textoContador;
+
+    // --- VARIÁVEIS PARA O MODO FUGA (ESTILO BALDI) ---
+    [Header("Configurações de Fuga")]
+    public static bool allCollected = false;
+    public Light directionalLight;
+    public Color redAmbientColor = new Color(0.8f, 0.1f, 0.1f);
+
+    // --- CONFIGURAÇÃO DA PAREDE DE INÍCIO ---
+    [Header("Configurações da Parede de Saída do Início")]
+    [Tooltip("Arraste aqui o GameObject da parede que bloqueia a saída no começo do jogo.")]
+    public GameObject paredeBloqueioInicio;
+    [Tooltip("Quantos itens coletados são necessários para a parede do início sumir.")]
+    public int itensParaAbrirParedeInicio = 2; // Você pode mudar para 2 ou quantos preferir no Inspetor
 
     void Start()
     {
         posicaoInicial = transform.position;
 
-        // Procura o texto na cena automaticamente pelo nome do GameObject (substitua "TextoContador" pelo nome exato do seu objeto de texto na Hierarchy)
+        // Garante que a parede de início começa ativa bloqueando a saída
+        if (paredeBloqueioInicio != null)
+        {
+            paredeBloqueioInicio.SetActive(true);
+        }
+
+        // Procura o texto na cena automaticamente pelo nome do GameObject
         if (textoContador == null)
         {
             GameObject objetoTexto = GameObject.Find("TextoContador");
@@ -61,11 +80,27 @@ public class Coletavel : MonoBehaviour
 
             // Incrementa a contagem
             objetosColetadosTotais++;
-            AtualizarTextoUI(); // Atualiza na tela na mesma hora
+            AtualizarTextoUI();
 
-            // --- CÓDIGO DAS PORTAS ---
-            PortaAutomatica[] todasAsPortas = FindObjectsByType<PortaAutomatica>(FindObjectsSortMode.None);
-            foreach (PortaAutomatica porta in todasAsPortas)
+            // --- VERIFICA SE DEVE ABRIR A PAREDE DO INÍCIO ---
+            if (objetosColetadosTotais >= itensParaAbrirParedeInicio && paredeBloqueioInicio != null)
+            {
+                if (paredeBloqueioInicio.activeSelf)
+                {
+                    paredeBloqueioInicio.SetActive(false);
+                    Debug.Log("A parede da saída inicial foi removida!");
+                }
+            }
+
+            // --- CHECA SE ATINGIU OS 10 ITENS PARA ACIONAR O MODO FUGA ---
+            if (objetosColetadosTotais >= limiteMaximoObjetos && !allCollected)
+            {
+                TriggerEndgame();
+            }
+
+            // --- CÓDIGO DAS PORTAS AUTOMÁTICAS (se houver) ---
+            PortaAutomatica[] todasAsPortasAuto = FindObjectsByType<PortaAutomatica>(FindObjectsSortMode.None);
+            foreach (PortaAutomatica porta in todasAsPortasAuto)
             {
                 porta.SomarObjeto();
             }
@@ -81,7 +116,42 @@ public class Coletavel : MonoBehaviour
         }
     }
 
-    // Função para atualizar o texto visualmente
+    // --- FUNÇÃO QUE ATIVA O MODO FUGA ---
+    void TriggerEndgame()
+    {
+        allCollected = true;
+        Debug.Log("Todos os 10 objetos coletados! As luzes ficam vermelhas e a fuga começou.");
+
+        // 1. Deixa a luz direcional vermelha
+        if (directionalLight == null)
+        {
+            directionalLight = FindFirstObjectByType<Light>();
+        }
+
+        if (directionalLight != null)
+        {
+            directionalLight.color = Color.red;
+        }
+        RenderSettings.ambientLight = redAmbientColor;
+
+        // 2. Sorteia aleatoriamente APENAS UMA das 4 portas para ser a vencedora
+        DoorController[] allDoors = FindObjectsByType<DoorController>(FindObjectsSortMode.None);
+        if (allDoors != null && allDoors.Length > 0)
+        {
+            int winningIndex = Random.Range(0, allDoors.Length); // Sorteia entre as portas encontradas
+
+            for (int i = 0; i < allDoors.Length; i++)
+            {
+                bool isWinner = (i == winningIndex);
+                allDoors[i].ConfigureDoor(isWinner);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Nenhum script 'DoorController' foi encontrado nas portas da cena!");
+        }
+    }
+
     private void AtualizarTextoUI()
     {
         if (textoContador != null)
