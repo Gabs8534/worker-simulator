@@ -7,26 +7,34 @@ public class BloqueioSaidaInicio : MonoBehaviour
     public GameObject paredeBloqueio;
 
     [Header("Quantidade de Itens")]
-    [Tooltip("Número de itens necessários para a parede aparecer e bloquear a saída (ex: 2 objetos).")]
+    [Tooltip("Número de itens necessários para a parede aparecer e bloquear a saída.")]
     public int itensParaBloquear = 2;
 
     private bool saidaBloqueada = false;
 
     void Start()
     {
-        // Garante que a parede começa DESATIVADA (a saída fica livre no início do jogo)
+        // Reseta o contador ao iniciar o jogo (caso tenha ficado salvo do teste anterior)
+        Coletavel.objetosColetadosTotais = 0;
+
         if (paredeBloqueio != null)
         {
             paredeBloqueio.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("Atenção: A 'Parede de Bloqueio' não foi atribuída no Inspector!");
         }
     }
 
     void Update()
     {
-        // Se a parede já foi ativada, não precisa continuar checando
         if (saidaBloqueada) return;
 
-        // Pega diretamente a contagem global de itens coletados do script Coletavel
+        // Mostra no Console o progresso para sabermos se o script está lendo a contagem
+        // (Você pode ver isso na aba Console do Unity)
+        // Debug.Log("Itens atuais: " + Coletavel.objetosColetadosTotais);
+
         if (Coletavel.objetosColetadosTotais >= itensParaBloquear)
         {
             BloquearSaida();
@@ -39,8 +47,8 @@ public class BloqueioSaidaInicio : MonoBehaviour
 
         if (paredeBloqueio != null)
         {
-            paredeBloqueio.SetActive(true); // Ativa a parede, bloqueando a saída!
-            Debug.Log("A parede apareceu e bloqueou a saída!");
+            paredeBloqueio.SetActive(true); // Ativa a parede
+            Debug.Log("Sucesso! A parede apareceu e bloqueou a saída!");
         }
     }
 }
