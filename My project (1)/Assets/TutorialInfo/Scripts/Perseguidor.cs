@@ -14,6 +14,12 @@ public class Perseguidor : MonoBehaviour
     private bool podePerseguir = false;
     private bool jaTeleportou = false; // Trava para garantir que o teleporte só ocorra 1 vez
 
+    [Header("Configurações de Animação (Mixamo)")]
+    [Tooltip("Arraste o componente Animator do monstro aqui (ou deixe vazio se estiver no mesmo objeto).")]
+    public Animator animadorInimigo;
+    [Tooltip("Nome exato do parâmetro Bool no Animator para ativar a corrida.")]
+    public string nomeParametroCorrida = "isChasing";
+
     [Header("Configurações de Teleporte do Perseguidor")]
     [Tooltip("Arraste aqui o GameObject vazio (Transform) para onde o monstro será teleportado ao pegar os 2 itens.")]
     public Transform pontoDeTeleporteMonstro;
@@ -21,6 +27,8 @@ public class Perseguidor : MonoBehaviour
     [Header("Configurações de Velocidade")]
     public float velocidadeModerada = 2.0f;
     public float aceleracaoInimigo = 4.0f;
+    [Tooltip("Quanto a velocidade do monstro aumenta a cada item coletado.")]
+    public float aumentoVelocidadePorItem = 1.0f;
 
     [Header("Configurações do Jumpscare de Foco")]
     [Tooltip("Tempo que o jogador fica olhando para a cara do monstro antes de mudar de cena.")]
@@ -55,6 +63,12 @@ public class Perseguidor : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+
+        // Se o animator não foi arrastado no Inspector, tenta pegar no próprio objeto
+        if (animadorInimigo == null)
+        {
+            animadorInimigo = GetComponent<Animator>();
+        }
 
         if (agent != null)
         {
@@ -91,20 +105,26 @@ public class Perseguidor : MonoBehaviour
     }
 
     // ====================================================================
-    // REGISTRAR COLETA
+    // REGISTRAR COLETAS E ATUALIZAR VELOCIDADE
     // ====================================================================
     public void RegistrarColeta()
     {
         itensColetados++;
 
-        // 1. Dropa a moeda no primeiro objeto coletado
+        // 1. Aumenta a velocidade proporcionalmente aos itens coletados
+        if (agent != null)
+        {
+            agent.speed = velocidadeModerada + (itensColetados * aumentoVelocidadePorItem);
+        }
+
+        // 2. Dropa a moeda no primeiro objeto coletado
         if (!moedaJaDropou)
         {
             DroparMoedaFisica();
             moedaJaDropou = true;
         }
 
-        // 2. Só teleporta e ativa a perseguição se atingiu a meta E ainda não tiver feito isso antes
+        // 3. Só teleporta e ativa a perseguição se atingiu a meta E ainda não tiver feito isso antes
         if (itensColetados >= itensNecessarios && !jaTeleportou)
         {
             jaTeleportou = true; // Trava ativada para nunca mais repetir
@@ -133,10 +153,17 @@ public class Perseguidor : MonoBehaviour
     void ComeçarAPerseguir()
     {
         podePerseguir = true;
+
+        // Ativa a animação de corrida do Mixamo no Animator
+        if (animadorInimigo != null)
+        {
+            animadorInimigo.SetBool(nomeParametroCorrida, true);
+        }
+
         if (agent != null)
         {
             agent.enabled = true;
-            agent.speed = velocidadeModerada;
+            agent.speed = velocidadeModerada + (itensColetados * aumentoVelocidadePorItem);
             agent.acceleration = aceleracaoInimigo;
         }
     }
@@ -166,10 +193,17 @@ public class Perseguidor : MonoBehaviour
             agent.enabled = false;
         }
 
+        // Para a animação de corrida ao pegar o player (opcional)
+        if (animadorInimigo != null)
+        {
+            animadorInimigo.SetBool(nomeParametroCorrida, false);
+        }
+
         if (jogador != null)
         {
-            PlayerMovement controleJogador = jogador.GetComponent<PlayerMovement>();
-            if (controleJogador != null)
+            // Substitua "PlayerMovement" pelo nome exato do script de movimento do seu player se for diferente
+            MonoBehaviour controleJogador = jogador.GetComponent<MonoBehaviour>();
+            if (controleJogador != null && controleJogador.GetType().Name == "PlayerMovement")
             {
                 controleJogador.enabled = false;
             }

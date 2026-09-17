@@ -146,7 +146,7 @@ RectTransform:
   m_GameObject: {fileID: 185600652}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.3363439, y: 1.3363439, z: 1.3363439}
+  m_LocalScale: {x: 2.89559, y: 2.89559, z: 2.89559}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 537473424}
@@ -313,6 +313,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: cbd5dfa83770c83488e5256a7f6484fc, type: 3}
   - {fileID: 21300000, guid: 1c5b27601f8b5314589ad2107b72ec92, type: 3}
   - {fileID: 21300000, guid: 4a975d7f875bae5429e818bffe111f56, type: 3}
+  - {fileID: 21300000, guid: 076fef0ada12e65489a709df45b5695d, type: 3}
+  - {fileID: 21300000, guid: 4caaa777a76727a4993f2af442af0624, type: 3}
+  - {fileID: 21300000, guid: 36234695ea9e3be4eaf0d51e944a344f, type: 3}
   imagemUI: {fileID: 2112435905}
 --- !u!4 &259751338
 Transform:
@@ -377,10 +380,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -397,8 +400,8 @@ Canvas:
   m_GameObject: {fileID: 537473420}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_RenderMode: 1
+  m_Camera: {fileID: 1108654926}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -562,7 +565,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1108654923}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.034547374, y: -0.96675503, z: 0.050911043, w: -0.24819213}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 634.76794, y: 312.01657, z: 260.56293}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -634,7 +637,7 @@ RectTransform:
   m_GameObject: {fileID: 2112435904}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.9290999, y: 0.9290999, z: 0.9290999}
+  m_LocalScale: {x: 1.6568447, y: 1.6568447, z: 1.6568447}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 537473424}
