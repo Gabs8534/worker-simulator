@@ -12,6 +12,12 @@ public class Coletavel : MonoBehaviour
     [Header("Configurações de Coleta")]
     public float duracaoAnimacaoSumir = 0.5f;
 
+    [Header("Efeitos Visuais e Sonoros (Novo!)")]
+    [Tooltip("Arraste aqui um Prefab de Partículas (Particle System) para explodir ao coletar.")]
+    public GameObject prefabParticulasColeta;
+    [Tooltip("Arraste aqui um arquivo de Áudio (AudioClip) para tocar ao coletar.")]
+    public AudioClip somColeta;
+
     private Vector3 posicaoInicial;
     private bool coletado = false;
 
@@ -33,19 +39,17 @@ public class Coletavel : MonoBehaviour
     [Tooltip("Arraste aqui o GameObject da parede que bloqueia a saída no começo do jogo.")]
     public GameObject paredeBloqueioInicio;
     [Tooltip("Quantos itens coletados são necessários para a parede do início sumir.")]
-    public int itensParaAbrirParedeInicio = 2; // Você pode mudar para 2 ou quantos preferir no Inspetor
+    public int itensParaAbrirParedeInicio = 2;
 
     void Start()
     {
         posicaoInicial = transform.position;
 
-        // Garante que a parede de início começa ativa bloqueando a saída
         if (paredeBloqueioInicio != null)
         {
             paredeBloqueioInicio.SetActive(true);
         }
 
-        // Procura o texto na cena automaticamente pelo nome do GameObject
         if (textoContador == null)
         {
             GameObject objetoTexto = GameObject.Find("TextoContador");
@@ -78,9 +82,25 @@ public class Coletavel : MonoBehaviour
                 return;
             }
 
+            // --- DISPARA OS EFEITOS VISUAIS E SONOROS ---
+            if (somColeta != null)
+            {
+                // Toca o som na posição do item (funciona mesmo após o objeto sumir)
+                AudioSource.PlayClipAtPoint(somColeta, transform.position);
+            }
+
+            if (prefabParticulasColeta != null)
+            {
+                // Cria as partículas na posição exata do item coletado
+                Instantiate(prefabParticulasColeta, transform.position, Quaternion.identity);
+            }
+            // ---------------------------------------------
+
             // Incrementa a contagem
             objetosColetadosTotais++;
             AtualizarTextoUI();
+
+            Debug.Log($"Item coletado! Total atual: {objetosColetadosTotais} / {limiteMaximoObjetos}");
 
             // --- VERIFICA SE DEVE ABRIR A PAREDE DO INÍCIO ---
             if (objetosColetadosTotais >= itensParaAbrirParedeInicio && paredeBloqueioInicio != null)
@@ -98,7 +118,7 @@ public class Coletavel : MonoBehaviour
                 TriggerEndgame();
             }
 
-            // --- CÓDIGO DAS PORTAS AUTOMÁTICAS (se houver) ---
+            // --- CÓDIGO DAS PORTAS AUTOMÁTICAS ---
             PortaAutomatica[] todasAsPortasAuto = FindObjectsByType<PortaAutomatica>(FindObjectsSortMode.None);
             foreach (PortaAutomatica porta in todasAsPortasAuto)
             {
@@ -116,13 +136,11 @@ public class Coletavel : MonoBehaviour
         }
     }
 
-    // --- FUNÇÃO QUE ATIVA O MODO FUGA ---
     void TriggerEndgame()
     {
         allCollected = true;
-        Debug.Log("Todos os 10 objetos coletados! As luzes ficam vermelhas e a fuga começou.");
+        Debug.Log("Modo Fuga Ativado! Luzes vermelhas e portas sorteadas.");
 
-        // 1. Deixa a luz direcional vermelha
         if (directionalLight == null)
         {
             directionalLight = FindFirstObjectByType<Light>();
@@ -134,21 +152,16 @@ public class Coletavel : MonoBehaviour
         }
         RenderSettings.ambientLight = redAmbientColor;
 
-        // 2. Sorteia aleatoriamente APENAS UMA das 4 portas para ser a vencedora
         DoorController[] allDoors = FindObjectsByType<DoorController>(FindObjectsSortMode.None);
         if (allDoors != null && allDoors.Length > 0)
         {
-            int winningIndex = Random.Range(0, allDoors.Length); // Sorteia entre as portas encontradas
+            int winningIndex = Random.Range(0, allDoors.Length);
 
             for (int i = 0; i < allDoors.Length; i++)
             {
                 bool isWinner = (i == winningIndex);
                 allDoors[i].ConfigureDoor(isWinner);
             }
-        }
-        else
-        {
-            Debug.LogWarning("Nenhum script 'DoorController' foi encontrado nas portas da cena!");
         }
     }
 

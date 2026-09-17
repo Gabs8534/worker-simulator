@@ -3,63 +3,47 @@ using UnityEngine.SceneManagement;
 
 public class DoorController : MonoBehaviour
 {
-    [Header("Configuração da Porta")]
-    [Tooltip("Marque se esta porta é uma das 3 que precisam ser bloqueadas.")]
-    public bool precisaSerBloqueada = true;
+    private bool ehPortaVencedora = false;
+    private bool jogoLiberado = false;
 
-    [Header("Animação / Visual")]
-    public Animator animadorPorta;
-    public string nomeBoolAnimacao = "Fechar"; // Parâmetro booleano no Animator
-
-    private bool jaInteragida = false;
-    private static int portasBloqueadasPeloJogador = 0;
-    private const int totalPortasParaBloquear = 3;
-
+    // Método chamado pelo Coletavel quando os 10 itens são atingidos
     public void ConfigureDoor(bool isWinner)
     {
-        // Esta função é chamada pelo Coletavel quando atinge os 10 itens (se você quiser usar lógica de porta vencedora aleatória).
-        // Como o seu foco principal é bloquear as 3 saídas, vamos manter a lógica baseada na interação do jogador abaixo.
+        jogoLiberado = true;
+        ehPortaVencedora = isWinner;
+
+        if (ehPortaVencedora)
+        {
+            Debug.Log("Esta porta foi sorteada como a SAÍDA REAL!", gameObject);
+        }
+        else
+        {
+            Debug.Log("Esta porta é uma saída FALSAS/TRANCADA.", gameObject);
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D outro)
     {
         if (outro.CompareTag("Player"))
         {
-            // CASO 1: É uma das 3 saídas que precisam ser bloqueadas
-            if (precisaSerBloqueada && !jaInteragida)
+            // Se ainda não pegou os 10 itens
+            if (!jogoLiberado || Coletavel.objetosColetadosTotais < Coletavel.limiteMaximoObjetos)
             {
-                jaInteragida = true;
-                portasBloqueadasPeloJogador++;
-
-                // Executa a animação de fechar/bloquear
-                if (animadorPorta != null)
-                {
-                    animadorPorta.SetBool(nomeBoolAnimacao, true);
-                }
-
-                Debug.Log($"Saída bloqueada! Total de saídas trancadas: {portasBloqueadasPeloJogador} / {totalPortasParaBloquear}");
+                Debug.Log("A saída está trancada. Colete todos os 10 itens primeiro!");
+                return;
             }
 
-            // CASO 2: É a 4ª saída (A saída final de fuga)
-            else if (!precisaSerBloqueada)
+            // Se já pegou os 10 itens, verifica se esta é a porta correta sorteadas
+            if (ehPortaVencedora)
             {
-                // Verifica se já pegou os 10 itens E se já bloqueou as 3 saídas anteriores
-                if (Coletavel.objetosColetadosTotais >= Coletavel.limiteMaximoObjetos && portasBloqueadasPeloJogador >= totalPortasParaBloquear)
-                {
-                    Debug.Log("Parabéns! Você trancou todas as saídas e escapou com sucesso!");
-                    SceneManagementHelper(); // Carrega a vitória
-                }
-                else
-                {
-                    Debug.Log("A saída final está trancada! Você precisa coletar os 10 itens e bloquear as 3 outras saídas primeiro.");
-                }
+                Debug.Log("Parabéns! Você encontrou a saída certa e escapou!");
+                SceneManager.LoadScene("TelaDeVitoria");
+            }
+            else
+            {
+                Debug.Log("Esta porta é falsa! Procure outra das 4 saídas!");
+                // Aqui você pode adicionar algum efeito, som de erro ou susto se quiser
             }
         }
-    }
-
-    void SceneManagementHelper()
-    {
-        // Substitua "TelaDeVitoria" pelo nome exato da sua cena final/menu
-        SceneManager.LoadScene("TelaDeVitoria");
     }
 }
