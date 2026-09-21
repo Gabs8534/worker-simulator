@@ -9139,6 +9139,53 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 318559315}
   m_Mesh: {fileID: 3722170503078652854, guid: e0d31913657846c4e9344974cc7f73dd, type: 3}
+--- !u!1 &319686861
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 319686863}
+  - component: {fileID: 319686864}
+  m_Layer: 0
+  m_Name: GerenciadorDeSaidas
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &319686863
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319686861}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -12.3228, y: 0.8465185, z: -16.318363}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &319686864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319686861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba03dd7b4fec0d4d80838811e1d926e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GerenciadorSaidas
+  paredeSaida1: {fileID: 840865669}
+  paredeSaida2: {fileID: 574130618}
+  paredeSaida3: {fileID: 903081450}
 --- !u!1 &325675673
 GameObject:
   m_ObjectHideFlags: 0
@@ -11831,8 +11878,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &397129622
@@ -14414,8 +14459,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &503911652
@@ -20029,8 +20072,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &741443243
@@ -22007,8 +22048,8 @@ Transform:
   m_GameObject: {fileID: 817142444}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.7077151, z: -0, w: 0.706498}
-  m_LocalPosition: {x: -36.4683, y: 0.03, z: 75.5966}
-  m_LocalScale: {x: 123.19349, y: 0.068329, z: 8.383873}
+  m_LocalPosition: {x: -36.4893, y: 0.03, z: 75.5966}
+  m_LocalScale: {x: 123.19349, y: 0.068329, z: 8.425793}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1743753416}
@@ -30908,8 +30949,8 @@ Transform:
   m_GameObject: {fileID: 1188557798}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.999989, z: -0, w: -0.004700608}
-  m_LocalPosition: {x: 112.87545, y: 3.99, z: 68.4009}
-  m_LocalScale: {x: 58.83601, y: 0.068329, z: 3.9799528}
+  m_LocalPosition: {x: 112.8767, y: 3.99, z: 68.4902}
+  m_LocalScale: {x: 58.83601, y: 0.068329, z: 4.1510906}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1743753416}
@@ -31024,8 +31065,8 @@ Transform:
   m_GameObject: {fileID: 1197326915}
   serializedVersion: 2
   m_LocalRotation: {x: 0.70979017, y: -0.0057040714, z: -0.005747545, w: -0.7043667}
-  m_LocalPosition: {x: 115.7186, y: 2.0332, z: 70.300674}
-  m_LocalScale: {x: 64.631195, y: 0.06833463, z: 3.985291}
+  m_LocalPosition: {x: 115.6858, y: 2.0332, z: 70.301}
+  m_LocalScale: {x: 64.69583, y: 0.06833463, z: 3.985291}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1743753416}
@@ -31185,8 +31226,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &1199856877
@@ -33736,7 +33775,7 @@ ParticleSystem:
   ShapeModule:
     serializedVersion: 6
     enabled: 1
-    type: 2
+    type: 17
     angle: 25
     length: 5
     boxThickness: {x: 0, y: 0, z: 0}
@@ -40358,8 +40397,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &1344789105
@@ -42156,8 +42193,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &1400947390
@@ -42431,8 +42466,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &1409025775
@@ -43569,8 +43602,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &1457178667
@@ -46140,8 +46171,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &1532817417
@@ -60720,8 +60749,6 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  directionalLight: {fileID: 0}
-  redAmbientColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
 --- !u!65 &1981438131
@@ -71202,4 +71229,5 @@ SceneRoots:
   - {fileID: 419565929}
   - {fileID: 1320228569}
   - {fileID: 604921230}
+  - {fileID: 319686863}
   - {fileID: 1258068617}

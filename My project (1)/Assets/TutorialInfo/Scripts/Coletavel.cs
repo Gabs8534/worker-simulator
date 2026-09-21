@@ -12,7 +12,7 @@ public class Coletavel : MonoBehaviour
     [Header("Configurações de Coleta")]
     public float duracaoAnimacaoSumir = 0.5f;
 
-    [Header("Efeitos Visuais e Sonoros (Novo!)")]
+    [Header("Efeitos Visuais e Sonoros")]
     [Tooltip("Arraste aqui um Prefab de Partículas (Particle System) para explodir ao coletar.")]
     public GameObject prefabParticulasColeta;
     [Tooltip("Arraste aqui um arquivo de Áudio (AudioClip) para tocar ao coletar.")]
@@ -31,8 +31,6 @@ public class Coletavel : MonoBehaviour
     // --- VARIÁVEIS PARA O MODO FUGA (ESTILO BALDI) ---
     [Header("Configurações de Fuga")]
     public static bool allCollected = false;
-    public Light directionalLight;
-    public Color redAmbientColor = new Color(0.8f, 0.1f, 0.1f);
 
     // --- CONFIGURAÇÃO DA PAREDE DE INÍCIO ---
     [Header("Configurações da Parede de Saída do Início")]
@@ -44,6 +42,10 @@ public class Coletavel : MonoBehaviour
     void Start()
     {
         posicaoInicial = transform.position;
+
+        // Garante que o jogo começa com o modo fuga resetado (caso reinicie a cena)
+        allCollected = false;
+        objetosColetadosTotais = 0;
 
         if (paredeBloqueioInicio != null)
         {
@@ -85,13 +87,11 @@ public class Coletavel : MonoBehaviour
             // --- DISPARA OS EFEITOS VISUAIS E SONOROS ---
             if (somColeta != null)
             {
-                // Toca o som na posição do item (funciona mesmo após o objeto sumir)
                 AudioSource.PlayClipAtPoint(somColeta, transform.position);
             }
 
             if (prefabParticulasColeta != null)
             {
-                // Cria as partículas na posição exata do item coletado
                 Instantiate(prefabParticulasColeta, transform.position, Quaternion.identity);
             }
             // ---------------------------------------------
@@ -139,19 +139,38 @@ public class Coletavel : MonoBehaviour
     void TriggerEndgame()
     {
         allCollected = true;
-        Debug.Log("Modo Fuga Ativado! Luzes vermelhas e portas sorteadas.");
+        Debug.Log("Modo Fuga Ativado! Pintando texturas, abrindo barreiras e sorteando portas.");
 
-        if (directionalLight == null)
+        // --- 1. PINTA AS TEXTURAS/MATERIAIS DA CENA DE VERMELHO ---
+        Renderer[] todosOsRenderers = FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+
+        foreach (Renderer rend in todosOsRenderers)
         {
-            directionalLight = FindFirstObjectByType<Light>();
-        }
+            if (rend.gameObject == gameObject) continue;
 
-        if (directionalLight != null)
+            if (rend.material.HasProperty("_Color"))
+            {
+                rend.material.color = Color.red;
+            }
+            else if (rend.material.HasProperty("_BaseColor"))
+            {
+                rend.material.SetColor("_BaseColor", Color.red);
+            }
+        }
+        // -----------------------------------------------------
+
+        // --- 2. ABRE AS 3 BARREIRAS USANDO O NOVO CONTROLADOR ---
+        if (ControladorBarreiras.Instance != null)
         {
-            directionalLight.color = Color.red;
+            ControladorBarreiras.Instance.LigarParedes(false); // false desliga as paredes (abre o caminho)
         }
-        RenderSettings.ambientLight = redAmbientColor;
+        else
+        {
+            Debug.LogWarning("ControladorBarreiras não foi encontrado na cena!");
+        }
+        // --------------------------------------------------------
 
+        // --- 3. SORTEIA A PORTA VERDADEIRA ENTRE AS SAÍDAS ---
         DoorController[] allDoors = FindObjectsByType<DoorController>(FindObjectsSortMode.None);
         if (allDoors != null && allDoors.Length > 0)
         {
