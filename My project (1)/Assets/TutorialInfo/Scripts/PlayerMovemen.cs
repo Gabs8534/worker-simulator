@@ -28,6 +28,15 @@ public class PlayerMovement : MonoBehaviour
     [Header("Configuração do Empurrão")]
     public float forcaDoEmpurrao = 5f;
 
+    [Header("Efeito da Vassoura")]
+    [HideInInspector] public bool estaNaVassoura = false;
+    [Range(0.1f, 0.9f)] public float multiplicadorLentidaoVassoura = 0.4f;
+
+    // Variáveis para controlar o bote da vassoura
+    private bool sofrendoBote = false;
+    private Vector3 direcaoBote;
+    private float velocidadeBote;
+
     private Vector3 moveDirection = Vector3.zero;
     private float rotationX = 0;
     private CharacterController characterController;
@@ -73,10 +82,39 @@ public class PlayerMovement : MonoBehaviour
             barraEstamina.value = estaminaAtual;
         }
 
-        float curSpeedX = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Vertical") : 0;
-        float curSpeedY = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Horizontal") : 0;
+        float targetWalkSpeed = walkSpeed;
+        float targetRunSpeed = runSpeed;
+
+        if (Input.GetKey(KeyCode.R) && canMove)
+        {
+            characterController.height = crouchHeight;
+            targetWalkSpeed = crouchSpeed;
+            targetRunSpeed = crouchSpeed;
+        }
+        else
+        {
+            characterController.height = defaultHeight;
+            targetWalkSpeed = 6f;
+            targetRunSpeed = 12f;
+        }
+
+        if (estaNaVassoura)
+        {
+            targetWalkSpeed *= multiplicadorLentidaoVassoura;
+            targetRunSpeed *= multiplicadorLentidaoVassoura;
+        }
+
+        float curSpeedX = canMove ? (isRunning ? targetRunSpeed : targetWalkSpeed) * Input.GetAxis("Vertical") : 0;
+        float curSpeedY = canMove ? (isRunning ? targetRunSpeed : targetWalkSpeed) * Input.GetAxis("Horizontal") : 0;
         float movementDirectionY = moveDirection.y;
         moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+
+        // Se estiver sofrendo o bote da vassoura, adicionamos a força do bote ao movimento
+        if (sofrendoBote)
+        {
+            moveDirection = direcaoBote * velocidadeBote;
+            sofrendoBote = false; // Reseta para o próximo frame
+        }
 
         if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
         {
@@ -92,19 +130,6 @@ public class PlayerMovement : MonoBehaviour
             moveDirection.y -= gravity * Time.deltaTime;
         }
 
-        if (Input.GetKey(KeyCode.R) && canMove)
-        {
-            characterController.height = crouchHeight;
-            walkSpeed = crouchSpeed;
-            runSpeed = crouchSpeed;
-        }
-        else
-        {
-            characterController.height = defaultHeight;
-            walkSpeed = 6f;
-            runSpeed = 12f;
-        }
-
         characterController.Move(moveDirection * Time.deltaTime);
 
         if (canMove)
@@ -115,24 +140,29 @@ public class PlayerMovement : MonoBehaviour
             transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
         }
         #endregion
+
+        estaNaVassoura = false;
     }
 
-    // ISSO ACONTECE QUANDO O PLAYER ENCOSTA EM ALGUM OBJETO COM TRIGGER
+    // Método chamado pela vassoura para empurrar o player durante o bote
+    public void EmpurrarPorBote(Vector3 direcao, float velocidade)
+    {
+        sofrendoBote = true;
+        direcaoBote = direcao;
+        velocidadeBote = velocidade;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        // Se encostar em um item para coletar
         if (other.CompareTag("Coletavel"))
         {
             Debug.Log("Item coletado: " + other.gameObject.name);
-            Destroy(other.gameObject); // Destrói/some com o item do chão (ou adicione ao inventário)
+            Destroy(other.gameObject);
         }
 
-        // Se encostar na porta
         if (other.CompareTag("Porta"))
         {
             Debug.Log("Chegou perto da porta!");
-            // Aqui você pode chamar a função para abrir a porta
-            // Exemplo: other.GetComponent<PortaScript>().AbrirPorta();
         }
     }
 

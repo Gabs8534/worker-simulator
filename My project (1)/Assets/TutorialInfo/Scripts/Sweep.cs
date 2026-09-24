@@ -28,7 +28,7 @@ public class Sweep : MonoBehaviour
         boxCollider = GetComponent<BoxCollider>();
 
         agent.speed = normalSpeed;
-        agent.updateRotation = false; // Desativa a rotação automática que faz ela girar devagar
+        agent.updateRotation = false;
         agent.acceleration = 999f;
 
         boxCollider.isTrigger = true;
@@ -76,7 +76,6 @@ public class Sweep : MonoBehaviour
             }
         }
 
-        // Faz olhar na direção do movimento manualmente se estiver andando
         DirecionarParaMovimento();
     }
 
@@ -95,11 +94,9 @@ public class Sweep : MonoBehaviour
             }
         }
 
-        // Faz olhar na direção para onde o agente está andando
         DirecionarParaMovimento();
     }
 
-    // Método para forçar a vassoura a olhar diretamente para onde está indo sem enrolação
     void DirecionarParaMovimento()
     {
         if (agent.velocity.sqrMagnitude > 0.1f && !agent.isStopped)
@@ -124,9 +121,7 @@ public class Sweep : MonoBehaviour
 
         agent.isStopped = true;
         agent.enabled = false;
-        boxCollider.isTrigger = false;
 
-        // Olha instantaneamente para a direção do bote
         if (sweepDirection != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(sweepDirection);
@@ -140,7 +135,7 @@ public class Sweep : MonoBehaviour
         transform.position += sweepDirection * sweepSpeed * Time.deltaTime;
 
         Vector3 pos = transform.position;
-        pos.y = 0f; // Ajuste para a altura do seu chão
+        pos.y = 0f;
         transform.position = pos;
 
         if (Physics.Raycast(transform.position, sweepDirection, 1.2f, collisionMask))
@@ -148,18 +143,25 @@ public class Sweep : MonoBehaviour
             agent.enabled = true;
             agent.isStopped = false;
             isSweeping = false;
-            boxCollider.isTrigger = true;
         }
     }
 
-    private void OnCollisionStay(Collision collision)
+    private void OnTriggerStay(Collider other)
     {
-        if (isSweeping && collision.gameObject.CompareTag("Player"))
+        if (other.CompareTag("Player"))
         {
-            CharacterController playerController = collision.gameObject.GetComponent<CharacterController>();
-            if (playerController != null)
+            PlayerMovement playerMov = other.GetComponent<PlayerMovement>();
+
+            if (playerMov != null)
             {
-                playerController.Move(sweepDirection * sweepSpeed * Time.deltaTime);
+                // Aplica a lentidão normal enquanto caminha por cima dela
+                playerMov.estaNaVassoura = true;
+
+                // Se estiver no bote, força o player a ser empurrado pelo script dele próprio
+                if (isSweeping)
+                {
+                    playerMov.EmpurrarPorBote(sweepDirection, sweepSpeed);
+                }
             }
         }
     }
