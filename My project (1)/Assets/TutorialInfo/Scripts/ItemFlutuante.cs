@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class ItemFlutuante : MonoBehaviour
 {
+    [Header("Configuração de Distância")]
+    public float distanciaMaxima = 3f; // Distância máxima para coletar o item
+
     [Header("Configurações do Inventário")]
     public string nomeDoItem;      // Digite o nome do item aqui (ex: Chocolate, Chave)
     public Sprite fotoDoItem;      // Arraste a fotinho dele para aparecer no slot
@@ -15,10 +18,7 @@ public class ItemFlutuante : MonoBehaviour
 
     void Start()
     {
-        // Salva a posição original do item
         posicaoInicial = transform.position;
-
-        // Encontra a câmera principal do jogo automaticamente
         cameraPrincipal = Camera.main;
     }
 
@@ -39,18 +39,25 @@ public class ItemFlutuante : MonoBehaviour
         }
     }
 
-    // 3. MODIFICADO: Agora detecta o clique do mouse diretamente no item
     private void OnMouseDown()
     {
-        // Procura o nosso script de inventário (o InventarioUmSlot)
+        // Procura o player na cena para medir a distância
+        PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
+        if (player != null)
+        {
+            float distancia = Vector3.Distance(player.transform.position, transform.position);
+            if (distancia > distanciaMaxima)
+            {
+                return; // Se estiver longe, não faz nada
+            }
+        }
+
+        // Procura o nosso script de inventário
         InventarioUmSlot inventario = FindFirstObjectByType<InventarioUmSlot>();
 
         if (inventario != null)
         {
-            // Envia o nome e a foto deste item para o inventário
             inventario.PegarItem(nomeDoItem, fotoDoItem);
-
-            // Some com o item do chão, pois ele foi coletado
             Destroy(gameObject);
         }
     }
