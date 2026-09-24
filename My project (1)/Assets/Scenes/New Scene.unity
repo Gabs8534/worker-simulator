@@ -305,6 +305,7 @@ GameObject:
   - component: {fileID: 496016309}
   - component: {fileID: 496016311}
   - component: {fileID: 496016310}
+  - component: {fileID: 496016312}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -5303,6 +5304,19 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
+--- !u!114 &496016312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 496016302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9da782918818f345a5f1115b44878ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: "Assembly-CSharp::pressionarqualquerbot\xE3o"
+  nomeDaCena: Jogo
 --- !u!1 &680453333
 GameObject:
   m_ObjectHideFlags: 0
@@ -5416,8 +5430,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -10.705, y: -0.003245}
-  m_SizeDelta: {x: 1352.3, y: 751.91}
+  m_AnchoredPosition: {x: -5.121, y: -33}
+  m_SizeDelta: {x: 1352.3, y: 719.828}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &744254941
 MonoBehaviour:
