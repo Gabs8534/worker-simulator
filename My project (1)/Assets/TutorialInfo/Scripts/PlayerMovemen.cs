@@ -28,6 +28,11 @@ public class PlayerMovement : MonoBehaviour
     [Header("Configuração do Empurrão")]
     public float forcaDoEmpurrao = 5f;
 
+<<<<<<< HEAD
+    [Header("Sistema de Segurar Item")]
+    public Transform maoDoPlayer; // Crie um objeto vazio (GameObject Vazio) filho da câmera e arraste aqui!
+    [HideInInspector] public GameObject itemAtualSegurado;
+=======
     [Header("Efeito da Vassoura")]
     [HideInInspector] public bool estaNaVassoura = false;
     [Range(0.1f, 0.9f)] public float multiplicadorLentidaoVassoura = 0.4f;
@@ -36,6 +41,7 @@ public class PlayerMovement : MonoBehaviour
     private bool sofrendoBote = false;
     private Vector3 direcaoBote;
     private float velocidadeBote;
+>>>>>>> bb658835b7ddfb414f37df1391a468b9a6af0d6d
 
     private Vector3 moveDirection = Vector3.zero;
     private float rotationX = 0;
@@ -58,7 +64,6 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        #region Movimento e Estamina
         Vector3 forward = transform.TransformDirection(Vector3.forward);
         Vector3 right = transform.TransformDirection(Vector3.right);
 
@@ -139,6 +144,8 @@ public class PlayerMovement : MonoBehaviour
             playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
             transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
         }
+<<<<<<< HEAD
+=======
         #endregion
 
         estaNaVassoura = false;
@@ -164,6 +171,7 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.Log("Chegou perto da porta!");
         }
+>>>>>>> bb658835b7ddfb414f37df1391a468b9a6af0d6d
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)

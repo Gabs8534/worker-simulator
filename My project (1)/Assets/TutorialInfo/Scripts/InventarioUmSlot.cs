@@ -3,58 +3,113 @@ using UnityEngine.UI;
 
 public class InventarioUmSlot : MonoBehaviour
 {
-    [Header("Referências da UI")]
-    public GameObject painelDoSlot;    // O objeto visual do slot (painel ou imagem de fundo)
-    public Image imagemIconeItem;      // O componente Image onde vai aparecer a foto do item
+    [System.Serializable]
+    public class ItemDados
+    {
+        public string nome;
+        public Sprite foto;
+    }
 
-    private string nomeItemAtual = "";
-    private bool temItem = false;
+    [Header("Bolsos Invisíveis")]
+    public ItemDados[] slots = new ItemDados[3];
+    public int slotSelecionado = 0;
+
+    [Header("A Única UI na Tela")]
+    public Image slotDaTela;
+    public Text textoNomeDoItem;
+
+    [Header("Sistema de Seleção Visual")]
+    public Image quadradinhoVermelho;
+    // NOVO: Arraste aqui as posições ou os próprios objetos dos 3 slots da sua tela
+    public Transform[] posicoesDosSlots = new Transform[3];
+
+    [Header("Configurações")]
+    public Sprite imagemVazia;
 
     void Start()
     {
-        // Garante que começa vazio e escondido (ou sem imagem)
-        if (imagemIconeItem != null)
+        // Inicializa os 3 bolsos vazios para evitar erros de referência
+        for (int i = 0; i < slots.Length; i++)
         {
-            imagemIconeItem.gameObject.SetActive(false);
+            slots[i] = new ItemDados { nome = "", foto = null };
+        }
+        AtualizarInterface();
+    }
+
+    void Update()
+    {
+        // Troca de bolso e atualiza a interface
+        if (Input.GetKeyDown(KeyCode.Alpha1)) { slotSelecionado = 0; AtualizarInterface(); }
+        if (Input.GetKeyDown(KeyCode.Alpha2)) { slotSelecionado = 1; AtualizarInterface(); }
+        if (Input.GetKeyDown(KeyCode.Alpha3)) { slotSelecionado = 2; AtualizarInterface(); }
+
+        // Usa o item
+        if (Input.GetMouseButtonDown(0))
+        {
+            // Se clicou em um item do chão, não gasta o da mão
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider.GetComponent<ItemClicavel>() != null) return;
+            }
+
+            UsarItemAtivo();
         }
     }
 
-    // Chamado pelo ItemFlutuante quando você clica nele
-    public void PegarItem(string nome, Sprite icone)
+    public void PegarItem(string nomeDoItem, Sprite fotoDoItem)
     {
-        if (temItem)
+        for (int i = 0; i < slots.Length; i++)
         {
-            Debug.Log("O inventário já está cheio!");
-            return;
+            if (string.IsNullOrEmpty(slots[i].nome))
+            {
+                slots[i].nome = nomeDoItem;
+                slots[i].foto = fotoDoItem;
+                AtualizarInterface();
+                return;
+            }
         }
-
-        nomeItemAtual = nome;
-        temItem = true;
-
-        if (imagemIconeItem != null && icone != null)
-        {
-            imagemIconeItem.sprite = icone;
-            imagemIconeItem.gameObject.SetActive(true);
-        }
-
-        Debug.Log("Item guardado no inventário: " + nome);
+        Debug.Log("Inventário cheio!");
     }
 
-    // Se você quiser usar ou descartar o item do slot por código ou botão
-    public void UsarOuDescartarItem()
+    void AtualizarInterface()
     {
-        if (!temItem) return;
+        if (slotDaTela == null || textoNomeDoItem == null) return;
 
-        Debug.Log("Usou o item: " + nomeItemAtual);
-
-        // Limpa o slot
-        nomeItemAtual = "";
-        temItem = false;
-
-        if (imagemIconeItem != null)
+        // --- NOVO: Move o quadradinho vermelho para o slot correto ---
+        if (quadradinhoVermelho != null && posicoesDosSlots.Length > slotSelecionado && posicoesDosSlots[slotSelecionado] != null)
         {
-            imagemIconeItem.sprite = null;
-            imagemIconeItem.gameObject.SetActive(false);
+            quadradinhoVermelho.enabled = true;
+            // Faz o quadradinho pular para a exata posição do slot selecionado
+            quadradinhoVermelho.transform.position = posicoesDosSlots[slotSelecionado].position;
+        }
+
+        // Mostra o item do bolso atual na UI principal
+        ItemDados itemAtual = slots[slotSelecionado];
+
+        if (itemAtual != null && !string.IsNullOrEmpty(itemAtual.nome))
+        {
+            slotDaTela.sprite = itemAtual.foto;
+            textoNomeDoItem.text = itemAtual.nome;
+        }
+        else
+        {
+            slotDaTela.sprite = imagemVazia;
+            textoNomeDoItem.text = "";
+        }
+    }
+
+    void UsarItemAtivo()
+    {
+        if (slots[slotSelecionado] != null && !string.IsNullOrEmpty(slots[slotSelecionado].nome))
+        {
+            Debug.Log("Usou: " + slots[slotSelecionado].nome);
+
+            slots[slotSelecionado].nome = "";
+            slots[slotSelecionado].foto = null;
+
+            AtualizarInterface();
         }
     }
 }
