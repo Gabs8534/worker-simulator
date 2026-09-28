@@ -42,8 +42,8 @@ public class Perseguidor1 : MonoBehaviour, IPerseguidor1
         }
 
         estaTonto = false;
-
     }
+}
 
 
 
