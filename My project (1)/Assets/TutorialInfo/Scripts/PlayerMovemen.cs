@@ -1,10 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerMovement : MonoBehaviour
+public class CanvasUpdate : MonoBehaviour
 {
     public Camera playerCamera;
     public float walkSpeed = 6f;
@@ -31,6 +32,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Sistema de Segurar Item")]
     public Transform maoDoPlayer; // Crie um objeto vazio (GameObject Vazio) filho da câmera e arraste aqui!
     [HideInInspector] public GameObject itemAtualSegurado;
+<<<<<<< HEAD
 
     [Header("Efeito da Vassoura")]
     [HideInInspector] public bool estaNaVassoura = false;
@@ -40,11 +42,18 @@ public class PlayerMovement : MonoBehaviour
     private bool sofrendoBote = false;
     private Vector3 direcaoBote;
     private float velocidadeBote;
+=======
+>>>>>>> 451e7810906e6106680553110ee8ad4af50d24fd
 
     private Vector3 moveDirection = Vector3.zero;
     private float rotationX = 0;
     private CharacterController characterController;
     private bool canMove = true;
+    private bool estaNaVassoura;
+    private float multiplicadorLentidaoVassoura;
+    private bool sofrendoBote;
+    private int direcaoBote;
+    private int velocidadeBote;
 
     void Start()
     {
@@ -60,8 +69,26 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void Update()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private Vector3 GetMoveDirection()
     {
+<<<<<<< HEAD
         Vector3 forward = transform.TransformDirection(Vector3.forward);
         Vector3 right = transform.TransformDirection(Vector3.right);
 
@@ -145,29 +172,38 @@ public class PlayerMovement : MonoBehaviour
 
        
         estaNaVassoura = false;
+=======
+        return moveDirection;
+>>>>>>> 451e7810906e6106680553110ee8ad4af50d24fd
     }
 
-    // Método chamado pela vassoura para empurrar o player durante o bote
-    public void EmpurrarPorBote(Vector3 direcao, float velocidade)
+    private int GetDirecaoBote()
     {
-        sofrendoBote = true;
-        direcaoBote = direcao;
-        velocidadeBote = velocidade;
+        return direcaoBote;
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Coletavel"))
-        {
-            Debug.Log("Item coletado: " + other.gameObject.name);
-            Destroy(other.gameObject);
-        }
+    private Vector3 GetV(int direcaoBote, Vector3 v) => v;
 
+
+
+
+
+
+
+
+
+
+
+
+
+<<<<<<< HEAD
         if (other.CompareTag("Porta"))
         {
             Debug.Log("Chegou perto da porta!");
         }
     }
+=======
+>>>>>>> 451e7810906e6106680553110ee8ad4af50d24fd
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
@@ -179,4 +215,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 direcaoEmpurrao = new Vector3(hit.moveDirection.x, 0, hit.moveDirection.z);
         body.AddForceAtPosition(direcaoEmpurrao * forcaDoEmpurrao, hit.point, ForceMode.Impulse);
     }
+
+    internal void EmpurrarPorBote(Vector3 sweepDirection, float sweepSpeed) => throw new NotImplementedException();
 }

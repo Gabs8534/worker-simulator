@@ -21,6 +21,7 @@ public class Sweep : MonoBehaviour
 
     private NavMeshAgent agent;
     private BoxCollider boxCollider;
+    private bool estaNaVassoura;
 
     void Start()
     {
@@ -150,17 +151,18 @@ public class Sweep : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            PlayerMovement playerMov = other.GetComponent<PlayerMovement>();
+            CanvasUpdate playerMov = other.GetComponent<CanvasUpdate>();
 
             if (playerMov != null)
             {
                 // Aplica a lentidão normal enquanto caminha por cima dela
-                playerMov.estaNaVassoura = true;
+                estaNaVassoura = true;
 
                 // Se estiver no bote, força o player a ser empurrado pelo script dele próprio
                 if (isSweeping)
                 {
-                    playerMov.EmpurrarPorBote(sweepDirection, sweepSpeed);
+                    playerMov.
+                        EmpurrarPorBote(sweepDirection, sweepSpeed);
                 }
             }
         }
