@@ -1,10 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerMovement : MonoBehaviour
+public class CanvasUpdate : MonoBehaviour
 {
     public Camera playerCamera;
     public float walkSpeed = 6f;
@@ -28,25 +29,19 @@ public class PlayerMovement : MonoBehaviour
     [Header("Configuração do Empurrão")]
     public float forcaDoEmpurrao = 5f;
 
-<<<<<<< HEAD
     [Header("Sistema de Segurar Item")]
     public Transform maoDoPlayer; // Crie um objeto vazio (GameObject Vazio) filho da câmera e arraste aqui!
     [HideInInspector] public GameObject itemAtualSegurado;
-=======
-    [Header("Efeito da Vassoura")]
-    [HideInInspector] public bool estaNaVassoura = false;
-    [Range(0.1f, 0.9f)] public float multiplicadorLentidaoVassoura = 0.4f;
-
-    // Variáveis para controlar o bote da vassoura
-    private bool sofrendoBote = false;
-    private Vector3 direcaoBote;
-    private float velocidadeBote;
->>>>>>> bb658835b7ddfb414f37df1391a468b9a6af0d6d
 
     private Vector3 moveDirection = Vector3.zero;
     private float rotationX = 0;
     private CharacterController characterController;
     private bool canMove = true;
+    private bool estaNaVassoura;
+    private float multiplicadorLentidaoVassoura;
+    private bool sofrendoBote;
+    private int direcaoBote;
+    private int velocidadeBote;
 
     void Start()
     {
@@ -62,117 +57,47 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void Update()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private Vector3 GetMoveDirection()
     {
-        Vector3 forward = transform.TransformDirection(Vector3.forward);
-        Vector3 right = transform.TransformDirection(Vector3.right);
-
-        if (estaminaAtual <= 0) exausto = true;
-        if (exausto && estaminaAtual >= estaminaMaxima) exausto = false;
-
-        bool isRunning = Input.GetKey(KeyCode.LeftShift) && estaminaAtual > 0 && !exausto;
-
-        if (isRunning)
-        {
-            estaminaAtual -= gastoEstamina * Time.deltaTime;
-        }
-        else if (estaminaAtual < estaminaMaxima)
-        {
-            estaminaAtual += recargaEstamina * Time.deltaTime;
-        }
-        estaminaAtual = Mathf.Clamp(estaminaAtual, 0, estaminaMaxima);
-
-        if (barraEstamina != null)
-        {
-            barraEstamina.value = estaminaAtual;
-        }
-
-        float targetWalkSpeed = walkSpeed;
-        float targetRunSpeed = runSpeed;
-
-        if (Input.GetKey(KeyCode.R) && canMove)
-        {
-            characterController.height = crouchHeight;
-            targetWalkSpeed = crouchSpeed;
-            targetRunSpeed = crouchSpeed;
-        }
-        else
-        {
-            characterController.height = defaultHeight;
-            targetWalkSpeed = 6f;
-            targetRunSpeed = 12f;
-        }
-
-        if (estaNaVassoura)
-        {
-            targetWalkSpeed *= multiplicadorLentidaoVassoura;
-            targetRunSpeed *= multiplicadorLentidaoVassoura;
-        }
-
-        float curSpeedX = canMove ? (isRunning ? targetRunSpeed : targetWalkSpeed) * Input.GetAxis("Vertical") : 0;
-        float curSpeedY = canMove ? (isRunning ? targetRunSpeed : targetWalkSpeed) * Input.GetAxis("Horizontal") : 0;
-        float movementDirectionY = moveDirection.y;
-        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
-
-        // Se estiver sofrendo o bote da vassoura, adicionamos a força do bote ao movimento
-        if (sofrendoBote)
-        {
-            moveDirection = direcaoBote * velocidadeBote;
-            sofrendoBote = false; // Reseta para o próximo frame
-        }
-
-        if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
-        {
-            moveDirection.y = jumpPower;
-        }
-        else
-        {
-            moveDirection.y = movementDirectionY;
-        }
-
-        if (!characterController.isGrounded)
-        {
-            moveDirection.y -= gravity * Time.deltaTime;
-        }
-
-        characterController.Move(moveDirection * Time.deltaTime);
-
-        if (canMove)
-        {
-            rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
-            rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-            playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
-            transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
-        }
-<<<<<<< HEAD
-=======
-        #endregion
-
-        estaNaVassoura = false;
+        return moveDirection;
     }
 
-    // Método chamado pela vassoura para empurrar o player durante o bote
-    public void EmpurrarPorBote(Vector3 direcao, float velocidade)
+    private int GetDirecaoBote()
     {
-        sofrendoBote = true;
-        direcaoBote = direcao;
-        velocidadeBote = velocidade;
+        return direcaoBote;
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Coletavel"))
-        {
-            Debug.Log("Item coletado: " + other.gameObject.name);
-            Destroy(other.gameObject);
-        }
+    private Vector3 GetV(int direcaoBote, Vector3 v) => v;
 
-        if (other.CompareTag("Porta"))
-        {
-            Debug.Log("Chegou perto da porta!");
-        }
->>>>>>> bb658835b7ddfb414f37df1391a468b9a6af0d6d
-    }
+
+
+
+
+
+
+
+
+
+
+
+
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
@@ -184,4 +109,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 direcaoEmpurrao = new Vector3(hit.moveDirection.x, 0, hit.moveDirection.z);
         body.AddForceAtPosition(direcaoEmpurrao * forcaDoEmpurrao, hit.point, ForceMode.Impulse);
     }
+
+    internal void EmpurrarPorBote(Vector3 sweepDirection, float sweepSpeed) => throw new NotImplementedException();
 }

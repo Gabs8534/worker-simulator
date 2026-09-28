@@ -12,13 +12,13 @@ public class ItemClicavel : MonoBehaviour
     private Vector3 posicaoInicial;
     private Camera cameraPrincipal;
     private bool estaSendoSegurado = false;
-    private PlayerMovement player;
+    private CanvasUpdate player;
 
     void Start()
     {
         posicaoInicial = transform.position;
         cameraPrincipal = Camera.main;
-        player = FindFirstObjectByType<PlayerMovement>();
+        player = FindFirstObjectByType<CanvasUpdate>();
     }
 
     void Update()
