@@ -4,6 +4,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovemen : MonoBehaviour
 {
+    [Header("Câmera")]
     public Camera playerCamera;
 
     [Header("Movimento")]
@@ -11,6 +12,8 @@ public class PlayerMovemen : MonoBehaviour
     public float runSpeed = 12f;
     public float jumpPower = 7f;
     public float gravity = 10f;
+
+    [Header("Mouse")]
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
@@ -23,12 +26,13 @@ public class PlayerMovemen : MonoBehaviour
     public Slider barraEstamina;
     public float estaminaMaxima = 100f;
     public float estaminaAtual;
+
     public float gastoEstamina = 20f;
     public float recargaEstamina = 15f;
 
     private bool exausto = false;
 
-    [Header("Configuração do Empurrão")]
+    [Header("Empurrar Objetos")]
     public float forcaDoEmpurrao = 5f;
 
     [Header("Sistema de Segurar Item")]
@@ -37,7 +41,7 @@ public class PlayerMovemen : MonoBehaviour
     [HideInInspector]
     public GameObject itemAtualSegurado;
 
-    [Header("Efeito da Vassoura")]
+    [Header("Vassoura")]
     [HideInInspector]
     public bool estaNaVassoura = false;
 
@@ -46,13 +50,19 @@ public class PlayerMovemen : MonoBehaviour
 
     [Header("Bote da Vassoura")]
     private bool sofrendoBote = false;
+
     private Vector3 direcaoBote = Vector3.zero;
+
     private float velocidadeBote = 0f;
 
-    // Essa variável será usada pelo perseguidor.
+    // O Perseguidor usa isso para saber
+    // se o Player está sendo empurrado pela vassoura.
     public bool SofrendoBote
     {
-        get { return sofrendoBote; }
+        get
+        {
+            return sofrendoBote;
+        }
     }
 
     private Vector3 moveDirection = Vector3.zero;
@@ -63,93 +73,100 @@ public class PlayerMovemen : MonoBehaviour
 
     private bool canMove = true;
 
-    void Start()
-    {
-        characterController = GetComponent<CharacterController>();
+    // =====================================================
+    // START
+    // =====================================================
 
-        Cursor.lockState = CursorLockMode.Locked;
+    private void Start()
+    {
+        characterController =
+            GetComponent<CharacterController>();
+
+        Cursor.lockState =
+            CursorLockMode.Locked;
+
         Cursor.visible = false;
 
-        estaminaAtual = estaminaMaxima;
+        estaminaAtual =
+            estaminaMaxima;
 
         if (barraEstamina != null)
         {
-            barraEstamina.maxValue = estaminaMaxima;
-            barraEstamina.value = estaminaMaxima;
+            barraEstamina.maxValue =
+                estaminaMaxima;
+
+            barraEstamina.value =
+                estaminaMaxima;
         }
+
+        // Garante a altura inicial.
+        characterController.height =
+            defaultHeight;
     }
 
-    void Update()
+    // =====================================================
+    // UPDATE
+    // =====================================================
+
+    private void Update()
     {
-        GetMoveDirection();
+        MovimentarPlayer();
     }
 
-    private Vector3 GetMoveDirection()
+    // =====================================================
+    // MOVIMENTO PRINCIPAL
+    // =====================================================
+
+    private void MovimentarPlayer()
     {
+        if (characterController == null)
+            return;
+
+        // =================================================
+        // DIREÇÕES
+        // =================================================
+
         Vector3 forward =
-            transform.TransformDirection(Vector3.forward);
+            transform.TransformDirection(
+                Vector3.forward
+            );
 
         Vector3 right =
-            transform.TransformDirection(Vector3.right);
+            transform.TransformDirection(
+                Vector3.right
+            );
 
-        // =====================================================
+        // =================================================
         // ESTAMINA
-        // =====================================================
+        // =================================================
 
-        if (estaminaAtual <= 0f)
-        {
-            exausto = true;
-        }
-
-        if (exausto &&
-            estaminaAtual >= estaminaMaxima)
-        {
-            exausto = false;
-        }
+        AtualizarEstamina();
 
         bool isRunning =
             Input.GetKey(KeyCode.LeftShift) &&
             estaminaAtual > 0f &&
-            !exausto;
+            !exausto &&
+            canMove;
 
-        if (isRunning)
-        {
-            estaminaAtual -=
-                gastoEstamina * Time.deltaTime;
-        }
-        else if (estaminaAtual < estaminaMaxima)
-        {
-            estaminaAtual +=
-                recargaEstamina * Time.deltaTime;
-        }
-
-        estaminaAtual = Mathf.Clamp(
-            estaminaAtual,
-            0f,
-            estaminaMaxima
-        );
-
-        if (barraEstamina != null)
-        {
-            barraEstamina.value = estaminaAtual;
-        }
-
-        // =====================================================
+        // =================================================
         // AGACHAR
-        // =====================================================
+        // =================================================
 
-        float targetWalkSpeed = walkSpeed;
-        float targetRunSpeed = runSpeed;
+        float velocidadeCaminhada =
+            walkSpeed;
+
+        float velocidadeCorrida =
+            runSpeed;
 
         if (Input.GetKey(KeyCode.R) && canMove)
         {
             characterController.height =
                 crouchHeight;
 
-            targetWalkSpeed =
+            velocidadeCaminhada =
                 crouchSpeed;
 
-            targetRunSpeed =
+            velocidadeCorrida =
                 crouchSpeed;
         }
         else
@@ -157,57 +174,71 @@ public class PlayerMovemen : MonoBehaviour
             characterController.height =
                 defaultHeight;
 
-            targetWalkSpeed =
+            velocidadeCaminhada =
                 walkSpeed;
 
-            targetRunSpeed =
+            velocidadeCorrida =
                 runSpeed;
         }
 
-        // =====================================================
-        // LENTIDÃO DA VASSOURA
-        // =====================================================
+        // =================================================
+        // VASSOURA
+        // =================================================
 
         if (estaNaVassoura)
         {
-            targetWalkSpeed *=
+            velocidadeCaminhada *=
                 multiplicadorLentidaoVassoura;
 
-            targetRunSpeed *=
+            velocidadeCorrida *=
                 multiplicadorLentidaoVassoura;
         }
 
-        // =====================================================
-        // VELOCIDADE
-        // =====================================================
+        // =================================================
+        // VELOCIDADE ATUAL
+        // =================================================
 
         float velocidadeAtual =
             isRunning
-                ? targetRunSpeed
-                : targetWalkSpeed;
+                ? velocidadeCorrida
+                : velocidadeCaminhada;
+
+        // =================================================
+        // INPUT
+        // =================================================
+
+        float horizontal =
+            Input.GetAxis("Horizontal");
+
+        float vertical =
+            Input.GetAxis("Vertical");
 
         float curSpeedX =
             canMove
-                ? velocidadeAtual *
-                  Input.GetAxis("Vertical")
+                ? velocidadeAtual * vertical
                 : 0f;
 
         float curSpeedY =
             canMove
-                ? velocidadeAtual *
-                  Input.GetAxis("Horizontal")
+                ? velocidadeAtual * horizontal
                 : 0f;
 
+        // Guarda o Y antes de reconstruir
+        // o movimento horizontal.
         float movimentoVerticalAnterior =
             moveDirection.y;
+
+        // =================================================
+        // MOVIMENTO NORMAL
+        // =================================================
 
         moveDirection =
             (forward * curSpeedX) +
             (right * curSpeedY);
 
-        // =====================================================
+        // =================================================
         // BOTE DA VASSOURA
-        // =====================================================
+        // =================================================
 
         if (sofrendoBote)
         {
@@ -219,13 +250,13 @@ public class PlayerMovemen : MonoBehaviour
                 direcaoBote.z *
                 velocidadeBote;
 
-            // Consome o bote deste frame.
+            // O bote dura este frame.
             sofrendoBote = false;
         }
 
-        // =====================================================
+        // =================================================
         // PULO
-        // =====================================================
+        // =================================================
 
         if (Input.GetButton("Jump") &&
             canMove &&
@@ -240,9 +271,9 @@ public class PlayerMovemen : MonoBehaviour
                 movimentoVerticalAnterior;
         }
 
-        // =====================================================
+        // =================================================
         // GRAVIDADE
-        // =====================================================
+        // =================================================
 
         if (!characterController.isGrounded)
         {
@@ -250,61 +281,137 @@ public class PlayerMovemen : MonoBehaviour
                 gravity *
                 Time.deltaTime;
         }
+        else if (moveDirection.y < 0f)
+        {
+            // Mantém o Player preso ao chão.
+            moveDirection.y = -2f;
+        }
 
-        // =====================================================
-        // MOVIMENTO
-        // =====================================================
+        // =================================================
+        // APLICA MOVIMENTO
+        // =================================================
 
         characterController.Move(
             moveDirection *
             Time.deltaTime
         );
 
-        // =====================================================
+        // =================================================
         // CÂMERA
-        // =====================================================
+        // =================================================
 
         if (canMove)
         {
-            rotationX +=
-                -Input.GetAxis("Mouse Y") *
-                lookSpeed;
+            RotacionarCamera();
+        }
 
-            rotationX = Mathf.Clamp(
+        // =================================================
+        // RESET DA VASSOURA
+        // =================================================
+
+        /*
+         * O Sweep chama esta variável novamente
+         * através do OnTriggerStay.
+         *
+         * Assim, ela só fica verdadeira enquanto
+         * o Player estiver realmente sobre a vassoura.
+         */
+
+        estaNaVassoura = false;
+    }
+
+    // =====================================================
+    // ESTAMINA
+    // =====================================================
+
+    private void AtualizarEstamina()
+    {
+        if (estaminaAtual <= 0f)
+        {
+            estaminaAtual = 0f;
+            exausto = true;
+        }
+
+        if (exausto &&
+            estaminaAtual >= estaminaMaxima)
+        {
+            exausto = false;
+        }
+
+        bool correndo =
+            Input.GetKey(KeyCode.LeftShift) &&
+            !exausto &&
+            estaminaAtual > 0f &&
+            canMove;
+
+        if (correndo)
+        {
+            estaminaAtual -=
+                gastoEstamina *
+                Time.deltaTime;
+        }
+        else
+        {
+            if (estaminaAtual < estaminaMaxima)
+            {
+                estaminaAtual +=
+                    recargaEstamina *
+                    Time.deltaTime;
+            }
+        }
+
+        estaminaAtual =
+            Mathf.Clamp(
+                estaminaAtual,
+                0f,
+                estaminaMaxima
+            );
+
+        if (barraEstamina != null)
+        {
+            barraEstamina.value =
+                estaminaAtual;
+        }
+    }
+
+    // =====================================================
+    // CÂMERA
+    // =====================================================
+
+    private void RotacionarCamera()
+    {
+        if (playerCamera == null)
+            return;
+
+        rotationX +=
+            -Input.GetAxis("Mouse Y") *
+            lookSpeed;
+
+        rotationX =
+            Mathf.Clamp(
                 rotationX,
                 -lookXLimit,
                 lookXLimit
             );
 
-            if (playerCamera != null)
-            {
-                playerCamera.transform.localRotation =
-                    Quaternion.Euler(
-                        rotationX,
-                        0f,
-                        0f
-                    );
-            }
+        playerCamera.transform.localRotation =
+            Quaternion.Euler(
+                rotationX,
+                0f,
+                0f
+            );
 
-            transform.rotation *=
-                Quaternion.Euler(
-                    0f,
-                    Input.GetAxis("Mouse X") *
-                    lookSpeed,
-                    0f
-                );
-        }
-
-        // IMPORTANTE:
-        // A vassoura precisa marcar novamente
-        // esta variável no próximo frame.
-        estaNaVassoura = false;
-
-        return moveDirection;
+        transform.rotation *=
+            Quaternion.Euler(
+                0f,
+                Input.GetAxis("Mouse X") *
+                lookSpeed,
+                0f
+            );
     }
 
     // =====================================================
-    // EMPURRÃO DA VASSOURA
+    // BOTE DA VASSOURA
     // =====================================================
 
     public void EmpurrarPorBote(
@@ -326,7 +433,7 @@ public class PlayerMovemen : MonoBehaviour
     }
 
     // =====================================================
-    // COLISÃO COM RIGIDBODY
+    // COLISÃO COM OBJETOS
     // =====================================================
 
     private void OnControllerColliderHit(
@@ -335,8 +442,10 @@ public class PlayerMovemen : MonoBehaviour
         Rigidbody body =
             hit.collider.attachedRigidbody;
 
-        if (body == null ||
-            body.isKinematic)
+        if (body == null)
+            return;
+
+        if (body.isKinematic)
             return;
 
         if (hit.moveDirection.y < -0.3f)
@@ -349,46 +458,45 @@ public class PlayerMovemen : MonoBehaviour
                 hit.moveDirection.z
             );
 
+        if (direcaoEmpurrao.sqrMagnitude <= 0.001f)
+            return;
+
         body.AddForceAtPosition(
             direcaoEmpurrao *
             forcaDoEmpurrao,
             hit.point,
             ForceMode.Impulse
         );
-
-        if (hit.collider.CompareTag("Porta"))
-        {
-            Debug.Log(
-                "Chegou perto da porta!"
-            );
-        }
     }
 
     // =====================================================
-    // TRIGGER
-    // =====================================================
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Porta"))
-        {
-            Debug.Log(
-                "Entrou no trigger da porta!"
-            );
-        }
-    }
-
-    // =====================================================
-    // CONTROLE EXTERNO
+    // CONTROLE DO PLAYER
     // =====================================================
 
     public void BloquearMovimento()
     {
         canMove = false;
+
+        moveDirection =
+            Vector3.zero;
     }
 
     public void LiberarMovimento()
     {
         canMove = true;
+    }
+
+    public bool PodeMover()
+    {
+        return canMove;
+    }
+
+    // =====================================================
+    // VASSOURA
+    // =====================================================
+
+    public bool EstaNaVassoura()
+    {
+        return estaNaVassoura;
     }
 }
