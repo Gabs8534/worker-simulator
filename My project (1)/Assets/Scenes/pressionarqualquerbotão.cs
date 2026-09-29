@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine;
 using UnityEngine.SceneManagement; // IMPORTANTE: Necessário para carregar cenas
 
 public class pressionarqualquerbotão : MonoBehaviour
