@@ -41,8 +41,6 @@ public class Perseguidor : MonoBehaviour
     [Tooltip("Tempo entre verificações da captura.")]
     public float intervaloVerificacaoCaptura = 0.05f;
 
-    private float ultimoCheckCaptura = 0f;
-
     [Header("Configurações do Jumpscare")]
     public float tempoDeSusto = 2f;
 

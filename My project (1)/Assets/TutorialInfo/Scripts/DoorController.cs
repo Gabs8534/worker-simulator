@@ -3,54 +3,64 @@ using UnityEngine.SceneManagement;
 
 public class DoorController : MonoBehaviour
 {
-    private bool ehPortaVencedora = false;
-    private bool jogoLiberado = false;
+    [Header("Bloqueio da porta")]
+    [SerializeField] private GameObject bloqueioDaPorta;
 
-    private void OnTriggerEnter2D(Collider2D outro)
+    [Header("Cena de vitória")]
+    [SerializeField] private string cenaVitoria = "TelaDeVitoria";
+
+    private bool ehPortaVencedora;
+    private bool jogoLiberado;
+
+    private void Start()
     {
-        if (outro.CompareTag("Player"))
+        AtualizarBloqueio();
+    }
+
+    private void Update()
+    {
+        if (Coletavel.allCollected && !jogoLiberado)
         {
-            // --- 1. SE AINDA NÃO COLETOU OS 10 ITENS ---
-            if (Coletavel.objetosColetadosTotais < Coletavel.limiteMaximoObjetos)
-            {
-                Debug.Log("A saída está trancada! Você precisa coletar todos os 10 itens primeiro.");
-                return;
-            }
+            jogoLiberado = true;
+            AtualizarBloqueio();
 
-            // --- 2. SE JÁ ESTÁ NO MODO FUGA (10 ITENS COLETADOS) ---
-            if (!jogoLiberado)
-            {
-                Debug.Log("As portas ainda estão trancadas pelo sistema!");
-                return;
-            }
-
-            // --- 3. VERIFICA SE É A PORTA CERTA OU FALSA ---
-            if (ehPortaVencedora)
-            {
-                Debug.Log("Parabéns! Você encontrou a saída certa e escapou!");
-                SceneManager.LoadScene("TelaDeVitoria");
-            }
-            else
-            {
-                Debug.Log("Esta porta é falsa! Procure outra saída!");
-                // Opcional: Aqui você pode tocar um som de erro ou fechar a porta
-            }
+            Debug.Log("A passagem foi liberada!");
         }
     }
 
-    // Método chamado pelo Coletavel quando atinge os 10 itens (Modo Fuga)
+    private void AtualizarBloqueio()
+    {
+        if (bloqueioDaPorta != null)
+        {
+            bloqueioDaPorta.SetActive(!jogoLiberado);
+        }
+    }
+
+    private void OnTriggerEnter(Collider outro)
+    {
+        if (!outro.CompareTag("Player"))
+            return;
+
+        if (!Coletavel.allCollected)
+        {
+            Debug.Log("Você precisa coletar os 10 objetos!");
+            return;
+        }
+
+        if (!ehPortaVencedora)
+        {
+            Debug.Log("Esta porta está errada! Procure outra.");
+            return;
+        }
+
+        SceneManager.LoadScene(cenaVitoria);
+    }
+
     public void ConfigureDoor(bool isWinner)
     {
-        jogoLiberado = true;
         ehPortaVencedora = isWinner;
+        jogoLiberado = Coletavel.allCollected;
 
-        if (ehPortaVencedora)
-        {
-            Debug.Log("Esta porta foi sorteada como a SAÍDA REAL!", gameObject);
-        }
-        else
-        {
-            Debug.Log("Esta porta é uma saída FALSA.", gameObject);
-        }
+        AtualizarBloqueio();
     }
 }
