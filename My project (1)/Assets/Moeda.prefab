@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 7625086161614481558}
   - component: {fileID: 7551010095905111158}
   - component: {fileID: 4107778426043621016}
-  - component: {fileID: 5781609603971292528}
   - component: {fileID: 5012917474155348182}
   - component: {fileID: 2618222477979814687}
+  - component: {fileID: -7026215832170223806}
   m_Layer: 0
   m_Name: Moeda
   m_TagString: Untagged
@@ -115,22 +115,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &5781609603971292528
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2832522373605724627}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 138abf06e267684438af3078d201f42d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ItemFlutuante
-  nomeDoItem: Refri
-  fotoDoItem: {fileID: 21300000, guid: 07a5b1819b86dac43a697a6922a873c9, type: 3}
-  amplitude: 0.2
-  velocidadeFlutuar: 2
 --- !u!65 &5012917474155348182
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -150,9 +134,29 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 6.1232336e-17}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.29844552, y: 0.50814635, z: 0}
+  m_Center: {x: -0.008441282, y: 0.018458491, z: 0}
 --- !u!114 &2618222477979814687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832522373605724627}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c865628eeca02e443b3f3726ef462545, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemClicavel
+  flutuar: 1
+  amplitude: 0.2
+  velocidadeFlutuar: 2
+  girarNoChao: 1
+  velocidadeGiro: 50
+  distanciaDaCamera: 0.7
+  alturaNaCamera: -0.3
+  ladoNaCamera: 0.5
+--- !u!114 &-7026215832170223806
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -161,12 +165,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 2832522373605724627}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c865628eeca02e443b3f3726ef462545, type: 3}
+  m_Script: {fileID: 11500000, guid: d33784e9f00ff3645807fd4ade7e36dd, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ItemClicavel
-  nomeDoItem: Refri
-  fotoDoItem: {fileID: 21300000, guid: 07a5b1819b86dac43a697a6922a873c9, type: 3}
+  m_EditorClassIdentifier: Assembly-CSharp::Moeda
+  valor: 1
   flutuar: 1
   amplitude: 0.2
   velocidadeFlutuar: 2
-  encararCamera: 1
+  girarNoChao: 1
+  velocidadeGiro: 50
+  distanciaDaCamera: 0.7
+  alturaNaCamera: -0.3
+  ladoNaCamera: 0.5
