@@ -1,26 +1,25 @@
+
 using UnityEngine;
 
 public class BloqueioPorToque : MonoBehaviour
 {
-    [Header("Cubo que bloqueia a porta")]
-    [SerializeField] private GameObject cuboBloqueio;
+    [Header("Gerenciador das saídas")]
+    [SerializeField] private ControleSaidas gerenciador;
 
     private void OnTriggerEnter(Collider outro)
     {
         if (!outro.CompareTag("Player"))
             return;
 
-        Debug.Log("Jogador encostou no detector!");
+        Debug.Log("Jogador tentou sair!");
 
-        // Ativa o cubo que já está posicionado na porta.
-        if (cuboBloqueio != null)
+        if (gerenciador != null)
         {
-            cuboBloqueio.SetActive(true);
-            Debug.Log("Cubo de bloqueio ativado!");
+            gerenciador.BloquearSaidas();
         }
         else
         {
-            Debug.LogError("Arraste o cubo para o campo Cubo Bloqueio!");
+            Debug.LogError("Arraste o GerenciadorSaidas!");
         }
     }
 }
