@@ -11,15 +11,22 @@ public class BloqueioPorToque : MonoBehaviour
         if (!outro.CompareTag("Player"))
             return;
 
-        Debug.Log("Jogador tentou sair!");
+        // Faz o sorteio somente na primeira tentativa.
+        gerenciador?.BloquearSaidas();
 
-        if (gerenciador != null)
+        if (gerenciador == null)
         {
-            gerenciador.BloquearSaidas();
+            Debug.LogError("Configure o Gerenciador de Saídas!");
+            return;
+        }
+
+        if (gerenciador.EstaLivre(gameObject))
+        {
+            Debug.Log("Esta saída está livre!");
         }
         else
         {
-            Debug.LogError("Arraste o GerenciadorSaidas!");
+            Debug.Log("Esta saída está bloqueada!");
         }
     }
 }

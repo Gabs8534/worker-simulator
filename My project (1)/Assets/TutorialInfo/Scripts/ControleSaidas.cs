@@ -3,23 +3,24 @@ using UnityEngine;
 
 public class ControleSaidas : MonoBehaviour
 {
-    [Header("Cubos que bloqueiam as 4 saídas")]
+    [Header("Os 4 bloqueios das saídas")]
     [SerializeField] private GameObject[] bloqueios = new GameObject[4];
 
     private bool ativado = false;
+    private int saidaLivre = -1;
 
     public void BloquearSaidas()
     {
         if (ativado)
             return;
 
-        if (bloqueios.Length != 4)
+        if (bloqueios == null || bloqueios.Length != 4)
         {
-            Debug.LogError("Configure os 4 bloqueios!");
+            Debug.LogError("Configure exatamente 4 bloqueios!");
             return;
         }
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < bloqueios.Length; i++)
         {
             if (bloqueios[i] == null)
             {
@@ -28,17 +29,31 @@ public class ControleSaidas : MonoBehaviour
             }
         }
 
-        // Escolhe qual saída ficará livre.
-        int saidaLivre = Random.Range(0, 4);
+        // Sorteia uma única saída livre.
+        saidaLivre = Random.Range(0, 4);
 
-        for (int i = 0; i < 4; i++)
+        // Bloqueia 3 saídas e libera 1.
+        for (int i = 0; i < bloqueios.Length; i++)
         {
-            // Três bloqueios ativos e um desativado.
             bloqueios[i].SetActive(i != saidaLivre);
         }
 
         ativado = true;
 
         Debug.Log("Saída livre: " + (saidaLivre + 1));
+    }
+
+    public bool EstaLivre(GameObject bloqueio)
+    {
+        if (!ativado || bloqueio == null)
+            return false;
+
+        for (int i = 0; i < bloqueios.Length; i++)
+        {
+            if (bloqueios[i] == bloqueio)
+                return i == saidaLivre;
+        }
+
+        return false;
     }
 }
