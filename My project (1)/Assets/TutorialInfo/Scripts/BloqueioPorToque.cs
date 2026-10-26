@@ -3,30 +3,63 @@ using UnityEngine;
 
 public class BloqueioPorToque : MonoBehaviour
 {
-    [Header("Gerenciador das saídas")]
+    [Header("Gerenciador das quatro saídas")]
     [SerializeField] private ControleSaidas gerenciador;
+
+    [Header("Configuração do detector")]
+    [SerializeField] private bool desativarNoInicio = false;
+
+    private Collider detector;
+
+    private void Awake()
+    {
+        detector = GetComponent<Collider>();
+
+        if (detector == null)
+        {
+            Debug.LogError(
+                "O detector precisa ter um Collider!",
+                this
+            );
+            return;
+        }
+
+        detector.isTrigger = true;
+
+        if (desativarNoInicio)
+        {
+            detector.enabled = false;
+        }
+    }
+
+    public void AtivarDetector()
+    {
+        if (detector != null)
+        {
+            detector.enabled = true;
+        }
+    }
 
     private void OnTriggerEnter(Collider outro)
     {
         if (!outro.CompareTag("Player"))
             return;
 
-        // Faz o sorteio somente na primeira tentativa.
-        gerenciador?.BloquearSaidas();
-
-        if (gerenciador == null)
+        if (!Coletavel.allCollected)
         {
-            Debug.LogError("Configure o Gerenciador de Saídas!");
+            Debug.Log("Colete os 10 cadernos primeiro!");
             return;
         }
 
-        if (gerenciador.EstaLivre(gameObject))
+        if (gerenciador == null)
         {
-            Debug.Log("Esta saída está livre!");
+            Debug.LogError(
+                "Arraste o SistemaSaidas para o campo Gerenciador!",
+                this
+            );
+            return;
         }
-        else
-        {
-            Debug.Log("Esta saída está bloqueada!");
-        }
+
+        gerenciador.BloquearSaidas();
     }
 }

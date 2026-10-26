@@ -1,3 +1,4 @@
+
 using System.Collections;
 using UnityEngine;
 using TMPro;
@@ -13,202 +14,224 @@ public class Coletavel : MonoBehaviour
     public float duracaoAnimacaoSumir = 0.5f;
 
     [Header("Efeitos Visuais e Sonoros")]
-    [Tooltip("Arraste aqui um Prefab de Partículas (Particle System) para explodir ao coletar.")]
     public GameObject prefabParticulasColeta;
-    [Tooltip("Arraste aqui um arquivo de Áudio (AudioClip) para tocar ao coletar.")]
     public AudioClip somColeta;
+
+    [Header("Configurações de Fuga")]
+    [SerializeField] private ControleSaidas controleSaidas;
+
+    [Header("Parede de Saída Inicial")]
+    public GameObject paredeBloqueioInicio;
+    public int itensParaAbrirParedeInicio = 2;
 
     private Vector3 posicaoInicial;
     private bool coletado = false;
 
-    // Contador estático global (máximo 10)
     public static int objetosColetadosTotais = 0;
     public const int limiteMaximoObjetos = 10;
-
-    // Referência para o texto na tela
-    private static TextMeshProUGUI textoContador;
-
-    // --- VARIÁVEIS PARA O MODO FUGA (ESTILO BALDI) ---
-    [Header("Configurações de Fuga")]
     public static bool allCollected = false;
 
-    // --- CONFIGURAÇÃO DA PAREDE DE INÍCIO ---
-    [Header("Configurações da Parede de Saída do Início")]
-    [Tooltip("Arraste aqui o GameObject da parede que bloqueia a saída no começo do jogo.")]
-    public GameObject paredeBloqueioInicio;
-    [Tooltip("Quantos itens coletados são necessários para a parede do início sumir.")]
-    public int itensParaAbrirParedeInicio = 2;
+    private static TextMeshProUGUI textoContador;
 
-    void Start()
+    private void Awake()
+    {
+        if (controleSaidas == null)
+            controleSaidas = FindFirstObjectByType<ControleSaidas>();
+    }
+
+    private void Start()
     {
         posicaoInicial = transform.position;
-
-        // Garante que o jogo começa com o modo fuga resetado (caso reinicie a cena)
-        allCollected = false;
-        objetosColetadosTotais = 0;
-
-        if (paredeBloqueioInicio != null)
-        {
-            paredeBloqueioInicio.SetActive(true);
-        }
 
         if (textoContador == null)
         {
             GameObject objetoTexto = GameObject.Find("TextoContador");
+
             if (objetoTexto != null)
-            {
                 textoContador = objetoTexto.GetComponent<TextMeshProUGUI>();
-            }
+        }
+
+        if (paredeBloqueioInicio != null)
+        {
+            paredeBloqueioInicio.SetActive(
+                objetosColetadosTotais < itensParaAbrirParedeInicio
+            );
         }
 
         AtualizarTextoUI();
     }
 
-    void Update()
+    private void Update()
     {
-        if (!coletado)
-        {
-            transform.Rotate(velocidadeRotacao * Time.deltaTime);
-            float novoY = posicaoInicial.y + Mathf.Sin(Time.time * velocidadeFlutuacao) * amplitude;
-            transform.position = new Vector3(posicaoInicial.x, novoY, posicaoInicial.z);
-        }
+        if (coletado)
+            return;
+
+        transform.Rotate(velocidadeRotacao * Time.deltaTime);
+
+        float novoY = posicaoInicial.y +
+            Mathf.Sin(Time.time * velocidadeFlutuacao) * amplitude;
+
+        transform.position = new Vector3(
+            posicaoInicial.x,
+            novoY,
+            posicaoInicial.z
+        );
     }
 
     private void OnMouseDown()
     {
-        if (!coletado)
+        if (coletado || objetosColetadosTotais >= limiteMaximoObjetos)
+            return;
+
+        coletado = true;
+
+        if (somColeta != null)
+            AudioSource.PlayClipAtPoint(somColeta, transform.position);
+
+        if (prefabParticulasColeta != null)
+            Instantiate(prefabParticulasColeta, transform.position, Quaternion.identity);
+
+        objetosColetadosTotais++;
+        AtualizarTextoUI();
+
+        Debug.Log(
+            $"Cadernos coletados: {objetosColetadosTotais}/{limiteMaximoObjetos}"
+        );
+
+        // Abre a parede inicial ao atingir a quantidade configurada.
+        if (
+            objetosColetadosTotais >= itensParaAbrirParedeInicio &&
+            paredeBloqueioInicio != null
+        )
         {
-            if (objetosColetadosTotais >= limiteMaximoObjetos)
-            {
-                Debug.Log("Você já coletou o limite máximo de 10 objetos!");
-                return;
-            }
-
-            // --- DISPARA OS EFEITOS VISUAIS E SONOROS ---
-            if (somColeta != null)
-            {
-                AudioSource.PlayClipAtPoint(somColeta, transform.position);
-            }
-
-            if (prefabParticulasColeta != null)
-            {
-                Instantiate(prefabParticulasColeta, transform.position, Quaternion.identity);
-            }
-            // ---------------------------------------------
-
-            // Incrementa a contagem
-            objetosColetadosTotais++;
-            AtualizarTextoUI();
-
-            Debug.Log($"Item coletado! Total atual: {objetosColetadosTotais} / {limiteMaximoObjetos}");
-
-            // --- VERIFICA SE DEVE ABRIR A PAREDE DO INÍCIO ---
-            if (objetosColetadosTotais >= itensParaAbrirParedeInicio && paredeBloqueioInicio != null)
-            {
-                if (paredeBloqueioInicio.activeSelf)
-                {
-                    paredeBloqueioInicio.SetActive(false);
-                    Debug.Log("A parede da saída inicial foi removida!");
-                }
-            }
-
-            // --- CHECA SE ATINGIU OS 10 ITENS PARA ACIONAR O MODO FUGA ---
-            if (objetosColetadosTotais >= limiteMaximoObjetos && !allCollected)
-            {
-                TriggerEndgame();
-            }
-
-            // --- CÓDIGO DAS PORTAS AUTOMÁTICAS ---
-            PortaAutomatica[] todasAsPortasAuto = FindObjectsByType<PortaAutomatica>(FindObjectsSortMode.None);
-            foreach (PortaAutomatica porta in todasAsPortasAuto)
-            {
-                porta.SomarObjeto();
-            }
-
-            // --- AVISA OS PERSEGUIDORES ---
-            Perseguidor[] todosOsPerseguidores = FindObjectsByType<Perseguidor>(FindObjectsSortMode.None);
-            foreach (Perseguidor inimigo in todosOsPerseguidores)
-            {
-                inimigo.RegistrarColeta();
-            }
-
-            StartCoroutine(AnimacaoColeta());
+            paredeBloqueioInicio.SetActive(false);
+            Debug.Log("Parede inicial aberta.");
         }
+
+        PortaAutomatica[] portas =
+            FindObjectsByType<PortaAutomatica>(FindObjectsSortMode.None);
+
+        foreach (PortaAutomatica porta in portas)
+        {
+            if (porta != null)
+                porta.SomarObjeto();
+        }
+
+        Perseguidor[] perseguidores =
+            FindObjectsByType<Perseguidor>(FindObjectsSortMode.None);
+
+        foreach (Perseguidor inimigo in perseguidores)
+        {
+            if (inimigo != null)
+                inimigo.RegistrarColeta();
+        }
+
+        if (objetosColetadosTotais >= limiteMaximoObjetos && !allCollected)
+            TriggerEndgame();
+
+        StartCoroutine(AnimacaoColeta());
     }
 
-    void TriggerEndgame()
+    private void TriggerEndgame()
     {
         allCollected = true;
-        Debug.Log("Modo Fuga Ativado! Pintando texturas, abrindo barreiras e sorteando portas.");
 
-        // --- 1. PINTA AS TEXTURAS/MATERIAIS DA CENA DE VERMELHO ---
-        Renderer[] todosOsRenderers = FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        Debug.Log("10 cadernos coletados! Ativando modo fuga.");
 
-        foreach (Renderer rend in todosOsRenderers)
+        // Libera a parede inicial.
+        if (paredeBloqueioInicio != null)
+            paredeBloqueioInicio.SetActive(false);
+
+        // Efeito visual vermelho.
+        Renderer[] renderers =
+            FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+
+        foreach (Renderer rend in renderers)
         {
-            if (rend.gameObject == gameObject) continue;
+            if (rend == null || rend.gameObject == gameObject)
+                continue;
 
-            if (rend.material.HasProperty("_Color"))
-            {
-                rend.material.color = Color.red;
-            }
-            else if (rend.material.HasProperty("_BaseColor"))
-            {
-                rend.material.SetColor("_BaseColor", Color.red);
-            }
+            Material material = rend.material;
+
+            if (material.HasProperty("_BaseColor"))
+                material.SetColor("_BaseColor", Color.red);
+            else if (material.HasProperty("_Color"))
+                material.color = Color.red;
         }
-        // -----------------------------------------------------
 
-        // --- 2. ABRE AS 3 BARREIRAS USANDO O NOVO CONTROLADOR ---
+        // Desativa as barreiras antigas.
         if (ControladorBarreiras.Instance != null)
+            ControladorBarreiras.Instance.LigarParedes(false);
+        else
+            Debug.LogWarning("ControladorBarreiras não encontrado.");
+
+        // Localiza o gerenciador novamente, se necessário.
+        if (controleSaidas == null)
+            controleSaidas = FindFirstObjectByType<ControleSaidas>();
+
+        // Ativa os três bloqueios finais imediatamente.
+        if (controleSaidas != null)
         {
-            ControladorBarreiras.Instance.LigarParedes(false); // false desliga as paredes (abre o caminho)
+            controleSaidas.BloquearSaidas();
         }
         else
         {
-            Debug.LogWarning("ControladorBarreiras não foi encontrado na cena!");
-        }
-        // --------------------------------------------------------
-
-        // --- 3. SORTEIA A PORTA VERDADEIRA ENTRE AS SAÍDAS ---
-        DoorController[] allDoors = FindObjectsByType<DoorController>(FindObjectsSortMode.None);
-        if (allDoors != null && allDoors.Length > 0)
-        {
-            int winningIndex = Random.Range(0, allDoors.Length);
-
-            for (int i = 0; i < allDoors.Length; i++)
-            {
-                bool isWinner = (i == winningIndex);
-                allDoors[i].ConfigureDoor(isWinner);
-            }
+            Debug.LogError(
+                "Não foi encontrado ControleSaidas ativo na cena!"
+            );
         }
     }
 
     private void AtualizarTextoUI()
     {
-        if (textoContador != null)
+        if (textoContador == null)
         {
-            textoContador.text = $"{objetosColetadosTotais} / {limiteMaximoObjetos}";
+            GameObject objetoTexto = GameObject.Find("TextoContador");
+
+            if (objetoTexto != null)
+                textoContador = objetoTexto.GetComponent<TextMeshProUGUI>();
         }
+
+        if (textoContador != null)
+            textoContador.text = $"{objetosColetadosTotais}/{limiteMaximoObjetos}";
     }
 
     private IEnumerator AnimacaoColeta()
     {
-        coletado = true;
-
         Vector3 escalaInicial = transform.localScale;
-        float tempoDecorrido = 0f;
 
-        if (TryGetComponent<Collider>(out Collider colisor)) colisor.enabled = false;
-        if (TryGetComponent<Collider2D>(out Collider2D colisor2D)) colisor2D.enabled = false;
+        if (TryGetComponent<Collider>(out Collider colisor))
+            colisor.enabled = false;
+
+        if (TryGetComponent<Collider2D>(out Collider2D colisor2D))
+            colisor2D.enabled = false;
+
+        if (duracaoAnimacaoSumir <= 0f)
+        {
+            transform.localScale = Vector3.zero;
+            Destroy(gameObject);
+            yield break;
+        }
+
+        float tempoDecorrido = 0f;
 
         while (tempoDecorrido < duracaoAnimacaoSumir)
         {
             tempoDecorrido += Time.deltaTime;
-            float progresso = tempoDecorrido / duracaoAnimacaoSumir;
 
-            transform.Rotate(velocidadeRotacao * 10f * Time.deltaTime);
-            transform.localScale = Vector3.Lerp(escalaInicial, Vector3.zero, progresso);
+            float progresso = Mathf.Clamp01(
+                tempoDecorrido / duracaoAnimacaoSumir
+            );
+
+            transform.Rotate(
+                velocidadeRotacao * 10f * Time.deltaTime
+            );
+
+            transform.localScale = Vector3.Lerp(
+                escalaInicial,
+                Vector3.zero,
+                progresso
+            );
 
             yield return null;
         }

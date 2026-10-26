@@ -3,57 +3,92 @@ using UnityEngine;
 
 public class ControleSaidas : MonoBehaviour
 {
-    [Header("Os 4 bloqueios das saídas")]
+    [Header("Arraste somente as 4 paredes NOVAS")]
     [SerializeField] private GameObject[] bloqueios = new GameObject[4];
 
-    private bool ativado = false;
-    private int saidaLivre = -1;
+    private bool sorteado;
 
-    public void BloquearSaidas()
+    private void Awake()
     {
-        if (ativado)
-            return;
+        sorteado = false;
 
         if (bloqueios == null || bloqueios.Length != 4)
         {
-            Debug.LogError("Configure exatamente 4 bloqueios!");
+            Debug.LogError("Configure exatamente 4 paredes novas!", this);
             return;
         }
 
-        for (int i = 0; i < bloqueios.Length; i++)
+        for (int i = 0; i < 4; i++)
         {
             if (bloqueios[i] == null)
             {
-                Debug.LogError("Falta configurar o bloqueio " + (i + 1));
+                Debug.LogError("A parede " + i + " não foi atribuída!", this);
+                continue;
+            }
+
+            bloqueios[i].SetActive(false);
+        }
+
+        Debug.Log("As 4 paredes novas começaram desativadas.");
+    }
+
+    public void BloquearSaidas()
+    {
+        if (!Coletavel.allCollected)
+        {
+            Debug.LogWarning("Ainda não foram coletados os 10 cadernos.");
+            return;
+        }
+
+        if (sorteado)
+        {
+            Debug.Log("As saídas já foram sorteadas.");
+            return;
+        }
+
+        if (bloqueios == null || bloqueios.Length != 4)
+        {
+            Debug.LogError("O sistema precisa de 4 paredes novas.");
+            return;
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (bloqueios[i] == null)
+            {
+                Debug.LogError("Configure a parede " + i + " no Inspector.");
                 return;
             }
         }
 
-        // Sorteia uma única saída livre.
-        saidaLivre = Random.Range(0, 4);
+        // Escolhe qual das quatro saídas ficará livre.
+        int saidaLivre = Random.Range(0, 4);
 
-        // Bloqueia 3 saídas e libera 1.
-        for (int i = 0; i < bloqueios.Length; i++)
+        for (int i = 0; i < 4; i++)
         {
-            bloqueios[i].SetActive(i != saidaLivre);
+            bool bloquear = (i != saidaLivre);
+
+            // Ativa três paredes e desativa uma.
+            bloqueios[i].SetActive(bloquear);
+
+            // Garante o estado dos colisores da parede.
+            Collider[] colisores =
+                bloqueios[i].GetComponentsInChildren<Collider>(true);
+
+            foreach (Collider colisor in colisores)
+            {
+                colisor.enabled = bloquear;
+            }
+
+            Debug.Log(
+                bloqueios[i].name + ": " +
+                (bloquear ? "BLOQUEADA" : "LIVRE")
+            );
         }
 
-        ativado = true;
+        sorteado = true;
 
-        Debug.Log("Saída livre: " + (saidaLivre + 1));
-    }
-
-    public bool EstaLivre(GameObject bloqueio)
-    {
-        if (!ativado || bloqueio == null)
-            return false;
-
-        for (int i = 0; i < bloqueios.Length; i++)
-        {
-            if (bloqueios[i] == bloqueio)
-                return i == saidaLivre;
-        }
-
-        return false;
+        Debug.Log("Sorteio concluído. Saída livre número " +
+                  (saidaLivre + 1));
     }
 }
