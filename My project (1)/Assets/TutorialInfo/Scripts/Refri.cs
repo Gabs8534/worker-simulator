@@ -1,4 +1,6 @@
+
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Refri : MonoBehaviour
 {
@@ -8,12 +10,22 @@ public class Refri : MonoBehaviour
     public float velocidadeJato = 20f;
     public float tamanhoJato = 0.5f;
 
+    [Range(1f, 90f)]
+    public float anguloJato = 30f;
+
     [Header("Visual do Spray")]
     public GameObject efeitoJato;
     public float duracaoJato = 1f;
 
     [Header("Som")]
     public AudioClip som;
+
+    [Header("Inimigos")]
+    public bool empurrarSweep = true;
+    public bool empurrarPerseguidor = true;
+
+    [Header("Detecção")]
+    public LayerMask camadaDeteccao = ~0;
 
     private Camera cameraPrincipal;
 
@@ -23,16 +35,15 @@ public class Refri : MonoBehaviour
 
         if (cameraPrincipal == null)
         {
-            Debug.LogError("Câmera principal não encontrada!");
+            Debug.LogError(
+                "Câmera principal não encontrada!"
+            );
             return;
         }
 
         Debug.Log("REFRI USADO!");
 
-        // =====================================
         // SOM
-        // =====================================
-
         if (som != null)
         {
             AudioSource.PlayClipAtPoint(
@@ -41,10 +52,7 @@ public class Refri : MonoBehaviour
             );
         }
 
-        // =====================================
-        // CRIA O JATO
-        // =====================================
-
+        // EFEITO VISUAL
         if (efeitoJato != null)
         {
             Vector3 posicaoInicial =
@@ -57,13 +65,11 @@ public class Refri : MonoBehaviour
                 cameraPrincipal.transform.rotation
             );
 
-            // Coloca o jato para viajar para frente
-            Rigidbody rbJato = jato.GetComponent<Rigidbody>();
+            Rigidbody rbJato =
+                jato.GetComponent<Rigidbody>();
 
             if (rbJato == null)
-            {
                 rbJato = jato.AddComponent<Rigidbody>();
-            }
 
             rbJato.useGravity = false;
             rbJato.isKinematic = false;
@@ -75,31 +81,26 @@ public class Refri : MonoBehaviour
             Destroy(jato, duracaoJato);
         }
 
-        // =====================================
-        // EMPURRA OS OBJETOS
-        // =====================================
-
+        // DETECTAR OBJETOS
         Collider[] objetos = Physics.OverlapSphere(
             cameraPrincipal.transform.position,
-            distancia
+            distancia,
+            camadaDeteccao,
+            QueryTriggerInteraction.Collide
         );
 
         foreach (Collider objeto in objetos)
         {
-            // Não empurra o próprio Player
+            if (objeto == null)
+                continue;
+
+            // NÃO EMPURRAR O PLAYER
             if (objeto.transform.root ==
                 cameraPrincipal.transform.root)
-            {
-                continue;
-            }
-
-            Rigidbody rb = objeto.attachedRigidbody;
-
-            if (rb == null)
                 continue;
 
             Vector3 direcao =
-                objeto.transform.position -
+                objeto.bounds.center -
                 cameraPrincipal.transform.position;
 
             float distanciaObjeto = direcao.magnitude;
@@ -107,36 +108,104 @@ public class Refri : MonoBehaviour
             if (distanciaObjeto <= 0.01f)
                 continue;
 
-            // Verifica se está na frente
+            // VERIFICAR SE ESTÁ NA FRENTE
             float angulo = Vector3.Angle(
                 cameraPrincipal.transform.forward,
                 direcao.normalized
             );
 
-            if (angulo > 20f)
+            if (angulo > anguloJato)
                 continue;
 
-            // Quanto mais perto, mais forte
+            // VERIFICAR OBSTÁCULOS
+            if (Physics.Raycast(
+                cameraPrincipal.transform.position,
+                direcao.normalized,
+                out RaycastHit hit,
+                distanciaObjeto,
+                camadaDeteccao,
+                QueryTriggerInteraction.Ignore))
+            {
+                if (hit.collider.transform.root !=
+                    objeto.transform.root)
+                    continue;
+            }
+
+            // FORÇA CONFORME DISTÂNCIA
             float multiplicador =
-                1f -
-                Mathf.Clamp01(
+                1f - Mathf.Clamp01(
                     distanciaObjeto / distancia
                 );
 
             float forcaFinal =
-                forca *
-                Mathf.Max(multiplicador, 0.2f);
+                forca * Mathf.Max(multiplicador, 0.2f);
 
-            rb.AddForce(
-                cameraPrincipal.transform.forward *
-                forcaFinal,
-                ForceMode.Impulse
-            );
+            // EMPURRAR SWEEP
+            Sweep sweep =
+                objeto.GetComponentInParent<Sweep>();
 
-            Debug.Log(
-                "SPRAY EMPURROU: " +
-                objeto.gameObject.name
-            );
+            if (sweep != null)
+            {
+                if (!empurrarSweep)
+                    continue;
+
+                EmpurraoRefri empurrao =
+                    sweep.GetComponent<EmpurraoRefri>();
+
+                if (empurrao != null)
+                {
+                    empurrao.Empurrar(
+                        direcao,
+                        forcaFinal
+                    );
+
+                    Debug.Log("REFRI EMPURROU A SWEEP!");
+                }
+
+                continue;
+            }
+
+            // EMPURRAR PERSEGUIDOR
+            Perseguidor perseguidor =
+                objeto.GetComponentInParent<Perseguidor>();
+
+            if (perseguidor != null)
+            {
+                if (!empurrarPerseguidor)
+                    continue;
+
+                EmpurraoRefri empurrao =
+                    perseguidor.GetComponent<EmpurraoRefri>();
+
+                if (empurrao != null)
+                {
+                    empurrao.Empurrar(
+                        direcao,
+                        forcaFinal
+                    );
+
+                    Debug.Log(
+                        "REFRI EMPURROU O PERSEGUIDOR!"
+                    );
+                }
+
+                continue;
+            }
+
+            // EMPURRAR OBJETOS COM RIGIDBODY
+            Rigidbody rb = objeto.attachedRigidbody;
+
+            if (rb != null && !rb.isKinematic)
+            {
+                rb.AddForce(
+                    direcao.normalized * forcaFinal,
+                    ForceMode.Impulse
+                );
+
+                Debug.Log(
+                    "REFRI EMPURROU: " + objeto.name
+                );
+            }
         }
     }
 

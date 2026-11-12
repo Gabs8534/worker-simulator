@@ -1,30 +1,37 @@
+
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(BoxCollider))]
 public class Sweep : MonoBehaviour
 {
-    [Header("Movimento")]
-    public float normalSpeed = 3.5f;
-    public float sweepSpeed = 15f;
+    [Header("Sala da Sweep")]
+    public Transform salaDaSweep;
 
-    [Tooltip("Somente paredes/obstáculos.")]
-    public LayerMask collisionMask;
+    [Header("Movimento")]
+    public float velocidadeNormal = 3.5f;
+    public float velocidadeSweep = 30f;
+    public float aceleracao = 50f;
+    public float velocidadeRotacao = 720f;
 
     [Header("Início")]
     public int itensNecessariosParaIniciar = 2;
 
-    [Range(0f, 1f)]
-    public float preGameMoveChance = 0.2f;
-
     [Header("Patrulha")]
     public float distanciaPatrulha = 25f;
-    public float distanciaDestino = 1f;
+    public float distanciaChegada = 1.5f;
 
-    [Header("Sweep")]
+    [Header("Duração da varrida")]
+    public float duracaoSweep = 12f;
+
+    [Header("Descanso")]
+    public float tempoDescanso = 8f;
+
+    [Header("Colisões")]
+    public LayerMask collisionMask;
     public float distanciaParede = 1.2f;
-    public float duracaoMaximaSweep = 5f;
 
     [Header("Player")]
     public bool podeEmpurrarPlayer = true;
@@ -32,373 +39,248 @@ public class Sweep : MonoBehaviour
     private NavMeshAgent agent;
     private BoxCollider boxCollider;
 
+    private bool jogoComecou = false;
     private bool isSweeping = false;
+    private bool estaDescansando = false;
+    private bool voltandoParaSala = false;
 
-    private Vector3 sweepDirection =
-        Vector3.zero;
+    private Vector3 sweepDirection;
 
-    private float moveTimer = 0f;
-    private float sweepTimer = 0f;
-
-    // =====================================================
-    // START
-    // =====================================================
+    private Coroutine rotina;
 
     private void Start()
     {
-        agent =
-            GetComponent<NavMeshAgent>();
+        agent = GetComponent<NavMeshAgent>();
+        boxCollider = GetComponent<BoxCollider>();
 
-        boxCollider =
-            GetComponent<BoxCollider>();
+        agent.speed = velocidadeNormal;
+        agent.acceleration = aceleracao;
+        agent.angularSpeed = velocidadeRotacao;
+        agent.updateRotation = true;
 
-        agent.speed =
-            normalSpeed;
+        boxCollider.isTrigger = true;
 
-        agent.acceleration =
-            999f;
+        // Espera os cadernos.
+        agent.isStopped = true;
+        agent.ResetPath();
 
-        agent.angularSpeed =
-            999f;
-
-        agent.updateRotation =
-            false;
-
-        boxCollider.isTrigger =
-            true;
+        Debug.Log("Sweep está esperando os cadernos.");
     }
-
-    // =====================================================
-    // UPDATE
-    // =====================================================
 
     private void Update()
     {
-        bool jogoComecou =
-            Coletavel.objetosColetadosTotais >=
-            itensNecessariosParaIniciar;
-
-        if (isSweeping)
-        {
-            PerformSweep();
-            return;
-        }
-
         if (!jogoComecou)
         {
-            HandlePreGameMovement();
-            return;
-        }
+            if (Coletavel.objetosColetadosTotais <
+                itensNecessariosParaIniciar)
+                return;
 
-        Patrol();
+            jogoComecou = true;
+
+            Debug.Log("SWEEP COMEÇOU!");
+
+            rotina = StartCoroutine(RotinaSweep());
+        }
     }
 
-    // =====================================================
-    // PRÉ-JOGO
-    // =====================================================
+    // =========================================
+    // ROTINA PRINCIPAL
+    // =========================================
 
-    private void HandlePreGameMovement()
+    private IEnumerator RotinaSweep()
     {
-        if (!agent.enabled)
-            return;
-
-        moveTimer +=
-            Time.deltaTime;
-
-        if (moveTimer < 5f)
-            return;
-
-        moveTimer = 0f;
-
-        if (Random.value <
-            preGameMoveChance)
+        while (true)
         {
-            Vector3 randomPoint =
-                transform.position +
-                Random.insideUnitSphere *
-                20f;
+            estaDescansando = false;
+            voltandoParaSala = false;
 
-            randomPoint.y =
-                transform.position.y;
+            Debug.Log("SWEEP SAIU DA SALA!");
+
+            // Escolhe destino.
+            Vector3 destino = EscolherDestino();
+
+            if ((destino - transform.position).sqrMagnitude > 1f)
+            {
+                Vector3 direcao = destino - transform.position;
+                direcao.y = 0f;
+
+                sweepDirection = direcao.normalized;
+
+                // Começa a varrer.
+                isSweeping = true;
+
+                agent.speed = velocidadeSweep;
+                agent.acceleration = aceleracao;
+                agent.isStopped = false;
+
+                agent.SetDestination(destino);
+
+                Debug.Log("GOTTA SWEEP SWEEP SWEEP!");
+
+                float tempo = 0f;
+
+                while (tempo < duracaoSweep)
+                {
+                    if (!agent.enabled)
+                        break;
+
+                    Vector3 origem = boxCollider.bounds.center;
+
+                    bool bateu = Physics.Raycast(
+                        origem,
+                        sweepDirection,
+                        distanciaParede,
+                        collisionMask,
+                        QueryTriggerInteraction.Ignore
+                    );
+
+                    if (bateu)
+                    {
+                        Debug.Log("SWEEP ENCONTROU UMA PAREDE!");
+                        break;
+                    }
+
+                    if (!agent.pathPending &&
+                        agent.remainingDistance <= distanciaChegada)
+                        break;
+
+                    tempo += Time.deltaTime;
+
+                    yield return null;
+                }
+            }
+
+            // Finaliza varrida.
+            isSweeping = false;
+            sweepDirection = Vector3.zero;
+
+            agent.isStopped = true;
+            agent.ResetPath();
+
+            Debug.Log("SWEEP TERMINOU!");
+
+            // Volta para casa.
+            if (salaDaSweep != null)
+            {
+                voltandoParaSala = true;
+
+                Debug.Log("SWEEP ESTÁ VOLTANDO PARA CASA!");
+
+                yield return StartCoroutine(
+                    IrAteDestino(salaDaSweep.position)
+                );
+
+                voltandoParaSala = false;
+            }
+            else
+            {
+                Debug.LogWarning("Configure a sala da Sweep!");
+            }
+
+            // Descanso.
+            estaDescansando = true;
+
+            agent.isStopped = true;
+
+            Debug.Log("SWEEP ESTÁ DESCANSANDO!");
+
+            yield return new WaitForSeconds(tempoDescanso);
+        }
+    }
+
+    // =========================================
+    // ESCOLHER DESTINO
+    // =========================================
+
+    private Vector3 EscolherDestino()
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            Vector3 ponto =
+                transform.position +
+                Random.insideUnitSphere * distanciaPatrulha;
+
+            ponto.y = transform.position.y;
 
             NavMeshHit hit;
 
             if (NavMesh.SamplePosition(
-                randomPoint,
+                ponto,
                 out hit,
-                20f,
+                distanciaPatrulha,
                 NavMesh.AllAreas))
             {
-                agent.isStopped =
-                    false;
+                NavMeshPath path = new NavMeshPath();
 
-                agent.SetDestination(
-                    hit.position
-                );
+                if (agent.CalculatePath(hit.position, path) &&
+                    path.status == NavMeshPathStatus.PathComplete)
+                {
+                    return hit.position;
+                }
             }
         }
-        else
-        {
-            agent.isStopped =
-                true;
 
-            agent.ResetPath();
-        }
-
-        DirecionarParaMovimento();
+        return transform.position;
     }
 
-    // =====================================================
-    // PATRULHA
-    // =====================================================
+    // =========================================
+    // IR ATÉ A SALA
+    // =========================================
 
-    private void Patrol()
+    private IEnumerator IrAteDestino(Vector3 destino)
     {
         if (!agent.enabled)
-            return;
-
-        agent.speed =
-            normalSpeed;
-
-        agent.isStopped =
-            false;
-
-        if (!agent.hasPath ||
-            agent.remainingDistance <=
-            distanciaDestino ||
-            agent.pathStatus ==
-            NavMeshPathStatus.PathPartial ||
-            agent.pathStatus ==
-            NavMeshPathStatus.PathInvalid)
-        {
-            EscolherDestino();
-        }
-
-        DirecionarParaMovimento();
-    }
-
-    // =====================================================
-    // DESTINO
-    // =====================================================
-
-    private void EscolherDestino()
-    {
-        Vector3 randomDirection =
-            Random.insideUnitSphere *
-            distanciaPatrulha;
-
-        randomDirection +=
-            transform.position;
-
-        randomDirection.y =
-            transform.position.y;
+            yield break;
 
         NavMeshHit hit;
 
-        if (NavMesh.SamplePosition(
-            randomDirection,
+        if (!NavMesh.SamplePosition(
+            destino,
             out hit,
-            distanciaPatrulha,
+            5f,
             NavMesh.AllAreas))
         {
-            agent.SetDestination(
-                hit.position
-            );
+            Debug.LogWarning("Destino fora do NavMesh!");
+            yield break;
         }
-    }
 
-    // =====================================================
-    // ROTAÇÃO
-    // =====================================================
+        // MESMA VELOCIDADE DA VARRIDA!
+        agent.speed = velocidadeSweep;
+        agent.acceleration = aceleracao;
+        agent.isStopped = false;
 
-    private void DirecionarParaMovimento()
-    {
-        if (!agent.enabled ||
-            agent.isStopped)
-            return;
+        agent.SetDestination(hit.position);
 
-        if (agent.velocity.sqrMagnitude <
-            0.01f)
-            return;
+        while (agent.enabled)
+        {
+            if (!agent.pathPending &&
+                agent.remainingDistance <= distanciaChegada)
+                break;
 
-        Vector3 direcao =
-            agent.velocity;
+            if (!agent.pathPending &&
+                agent.pathStatus == NavMeshPathStatus.PathInvalid)
+                break;
 
-        direcao.y = 0f;
-
-        if (direcao.sqrMagnitude <
-            0.001f)
-            return;
-
-        transform.rotation =
-            Quaternion.LookRotation(
-                direcao.normalized
-            );
-    }
-
-    // =====================================================
-    // INICIAR SWEEP
-    // =====================================================
-
-    public void TriggerSweep(
-        Vector3 direction)
-    {
-        bool jogoComecou =
-            Coletavel.objetosColetadosTotais >=
-            itensNecessariosParaIniciar;
-
-        if (!jogoComecou)
-            return;
-
-        if (isSweeping)
-            return;
-
-        direction.y = 0f;
-
-        if (direction.sqrMagnitude <
-            0.001f)
-            return;
-
-        sweepDirection =
-            direction.normalized;
-
-        isSweeping =
-            true;
-
-        sweepTimer =
-            0f;
+            yield return null;
+        }
 
         if (agent.enabled)
         {
-            agent.isStopped =
-                true;
-
+            agent.isStopped = true;
             agent.ResetPath();
-
-            agent.enabled =
-                false;
-        }
-
-        transform.rotation =
-            Quaternion.LookRotation(
-                sweepDirection
-            );
-
-        Debug.Log(
-            "Gotta sweep sweep sweep!"
-        );
-    }
-
-    // =====================================================
-    // EXECUTAR SWEEP
-    // =====================================================
-
-    private void PerformSweep()
-    {
-        sweepTimer +=
-            Time.deltaTime;
-
-        if (sweepDirection.sqrMagnitude <
-            0.001f)
-        {
-            FinalizarSweep();
-            return;
-        }
-
-        // ================================================
-        // RAYCAST
-        // ================================================
-
-        Vector3 origem =
-            boxCollider.bounds.center;
-
-        bool bateu =
-            Physics.Raycast(
-                origem,
-                sweepDirection,
-                distanciaParede,
-                collisionMask,
-                QueryTriggerInteraction.Ignore
-            );
-
-        if (bateu)
-        {
-            FinalizarSweep();
-            return;
-        }
-
-        // ================================================
-        // MOVIMENTO
-        // ================================================
-
-        transform.position +=
-            sweepDirection *
-            sweepSpeed *
-            Time.deltaTime;
-
-        // ================================================
-        // TIMEOUT
-        // ================================================
-
-        if (sweepTimer >=
-            duracaoMaximaSweep)
-        {
-            FinalizarSweep();
         }
     }
 
-    // =====================================================
-    // FINALIZAR
-    // =====================================================
-
-    private void FinalizarSweep()
-    {
-        isSweeping =
-            false;
-
-        sweepTimer =
-            0f;
-
-        sweepDirection =
-            Vector3.zero;
-
-        if (!agent.enabled)
-        {
-            NavMeshHit hit;
-
-            if (NavMesh.SamplePosition(
-                transform.position,
-                out hit,
-                3f,
-                NavMesh.AllAreas))
-            {
-                transform.position =
-                    hit.position;
-            }
-
-            agent.enabled =
-                true;
-        }
-
-        agent.isStopped =
-            false;
-
-        agent.speed =
-            normalSpeed;
-    }
-
-    // =====================================================
+    // =========================================
     // PLAYER
-    // =====================================================
+    // =========================================
 
     private void OnTriggerStay(Collider other)
     {
-        // =================================================
-        // MUITO IMPORTANTE:
-        // SÓ O PLAYER PODE ENTRAR NESSA LÓGICA.
-        // =================================================
-
         if (!other.CompareTag("Player"))
+            return;
+
+        if (other.GetComponentInParent<Perseguidor>() != null)
             return;
 
         PlayerMovemen player =
@@ -407,65 +289,79 @@ public class Sweep : MonoBehaviour
         if (player == null)
             return;
 
-        // Player está sobre a vassoura.
-        player.estaNaVassoura =
-            true;
+        player.estaNaVassoura = true;
 
-        // Empurra somente durante o sweep.
-        if (isSweeping &&
-            podeEmpurrarPlayer)
+        if (isSweeping && podeEmpurrarPlayer)
         {
             player.EmpurrarPorBote(
                 sweepDirection,
-                sweepSpeed
+                velocidadeSweep
             );
         }
     }
 
-    // =====================================================
-    // DEBUG
-    // =====================================================
-
-    private void OnDrawGizmosSelected()
+    private void OnTriggerExit(Collider other)
     {
-        Gizmos.color =
-            Color.red;
+        PlayerMovemen player =
+            other.GetComponentInParent<PlayerMovemen>();
 
-        Vector3 origem =
-            transform.position;
-
-        if (boxCollider != null)
-        {
-            origem =
-                boxCollider.bounds.center;
-        }
-
-        Vector3 direcao =
-            isSweeping &&
-            sweepDirection.sqrMagnitude >
-            0.001f
-                ? sweepDirection
-                : transform.forward;
-
-        Gizmos.DrawLine(
-            origem,
-            origem +
-            direcao.normalized *
-            distanciaParede
-        );
+        if (player != null)
+            player.estaNaVassoura = false;
     }
 
-    // =====================================================
-    // ACESSO
-    // =====================================================
+    // =========================================
+    // INFORMAÇÕES
+    // =========================================
 
     public bool EstaFazendoSweep()
     {
         return isSweeping;
     }
 
+    public bool EstaDescansando()
+    {
+        return estaDescansando;
+    }
+
+    public bool EstaVoltandoParaSala()
+    {
+        return voltandoParaSala;
+    }
+
     public Vector3 GetSweepDirection()
     {
         return sweepDirection;
+    }
+
+    // =========================================
+    // DEBUG
+    // =========================================
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+
+        Vector3 origem = transform.position;
+
+        BoxCollider col = GetComponent<BoxCollider>();
+
+        if (col != null)
+            origem = col.bounds.center;
+
+        Vector3 direcao =
+            sweepDirection.sqrMagnitude > 0.001f
+            ? sweepDirection
+            : transform.forward;
+
+        Gizmos.DrawLine(
+            origem,
+            origem + direcao * distanciaParede
+        );
+
+        if (salaDaSweep != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(salaDaSweep.position, 1f);
+        }
     }
 }

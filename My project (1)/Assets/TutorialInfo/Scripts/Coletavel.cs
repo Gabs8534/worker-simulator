@@ -24,8 +24,13 @@ public class Coletavel : MonoBehaviour
     public GameObject paredeBloqueioInicio;
     public int itensParaAbrirParedeInicio = 2;
 
+    [Header("Mundo Vermelho")]
+    public Color corMundo = Color.red;
+    public int cadernosParaMundoVermelho = 7;
+
     private Vector3 posicaoInicial;
     private bool coletado = false;
+    private static bool mundoVermelhoAtivado = false;
 
     public static int objetosColetadosTotais = 0;
     public const int limiteMaximoObjetos = 10;
@@ -92,13 +97,14 @@ public class Coletavel : MonoBehaviour
             Instantiate(prefabParticulasColeta, transform.position, Quaternion.identity);
 
         objetosColetadosTotais++;
+
         AtualizarTextoUI();
 
         Debug.Log(
             $"Cadernos coletados: {objetosColetadosTotais}/{limiteMaximoObjetos}"
         );
 
-        // Abre a parede inicial ao atingir a quantidade configurada.
+        // Abre a parede inicial.
         if (
             objetosColetadosTotais >= itensParaAbrirParedeInicio &&
             paredeBloqueioInicio != null
@@ -106,6 +112,15 @@ public class Coletavel : MonoBehaviour
         {
             paredeBloqueioInicio.SetActive(false);
             Debug.Log("Parede inicial aberta.");
+        }
+
+        // Mundo fica vermelho ao coletar 7 cadernos.
+        if (
+            objetosColetadosTotais >= cadernosParaMundoVermelho &&
+            !mundoVermelhoAtivado
+        )
+        {
+            AtivarMundoVermelho();
         }
 
         PortaAutomatica[] portas =
@@ -132,44 +147,51 @@ public class Coletavel : MonoBehaviour
         StartCoroutine(AnimacaoColeta());
     }
 
+    private void AtivarMundoVermelho()
+    {
+        mundoVermelhoAtivado = true;
+
+        Debug.Log("O MUNDO FICOU VERMELHO!");
+
+        Renderer[] renderers =
+            FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+
+        foreach (Renderer rend in renderers)
+        {
+            if (rend == null)
+                continue;
+
+            foreach (Material material in rend.materials)
+            {
+                if (material.HasProperty("_BaseColor"))
+                    material.SetColor("_BaseColor", corMundo);
+                else if (material.HasProperty("_Color"))
+                    material.SetColor("_Color", corMundo);
+            }
+        }
+    }
+
     private void TriggerEndgame()
     {
         allCollected = true;
 
         Debug.Log("10 cadernos coletados! Ativando modo fuga.");
 
-        // Libera a parede inicial.
         if (paredeBloqueioInicio != null)
             paredeBloqueioInicio.SetActive(false);
 
-        // Efeito visual vermelho.
-        Renderer[] renderers =
-            FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        // Mantém o efeito vermelho no modo fuga.
+        if (!mundoVermelhoAtivado)
+            AtivarMundoVermelho();
 
-        foreach (Renderer rend in renderers)
-        {
-            if (rend == null || rend.gameObject == gameObject)
-                continue;
-
-            Material material = rend.material;
-
-            if (material.HasProperty("_BaseColor"))
-                material.SetColor("_BaseColor", Color.red);
-            else if (material.HasProperty("_Color"))
-                material.color = Color.red;
-        }
-
-        // Desativa as barreiras antigas.
         if (ControladorBarreiras.Instance != null)
             ControladorBarreiras.Instance.LigarParedes(false);
         else
             Debug.LogWarning("ControladorBarreiras não encontrado.");
 
-        // Localiza o gerenciador novamente, se necessário.
         if (controleSaidas == null)
             controleSaidas = FindFirstObjectByType<ControleSaidas>();
 
-        // Ativa os três bloqueios finais imediatamente.
         if (controleSaidas != null)
         {
             controleSaidas.BloquearSaidas();
@@ -193,7 +215,8 @@ public class Coletavel : MonoBehaviour
         }
 
         if (textoContador != null)
-            textoContador.text = $"{objetosColetadosTotais}/{limiteMaximoObjetos}";
+            textoContador.text =
+                $"{objetosColetadosTotais}/{limiteMaximoObjetos}";
     }
 
     private IEnumerator AnimacaoColeta()

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 878233958674163140}
   - component: {fileID: 202820772147560014}
   - component: {fileID: -6674755697237724433}
+  - component: {fileID: 4364286351584073552}
   m_Layer: 0
   m_Name: pixil-frame-0 (2)
   m_TagString: Untagged
@@ -103,3 +104,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c37405c56e3ab9e45a7df9e725acfd7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OlharParaCamera
+--- !u!114 &4364286351584073552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8661370476296191058}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c16607c12877f04c93a3bcc103aee0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EmpurraoRefri
+  duracao: 1.5
+  distanciaEmpurrao: 8
