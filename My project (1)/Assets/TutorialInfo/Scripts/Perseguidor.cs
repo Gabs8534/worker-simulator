@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
@@ -8,11 +9,12 @@ public class Perseguidor : MonoBehaviour
     private NavMeshAgent agent;
     private Transform jogador;
     private PlayerMovemen jogadorMov;
-
     private Camera cameraPrincipal;
+    private EmpurraoRefri empurraoRefri;
 
     private int itensColetados = 0;
 
+    [Header("Objetos Necessários")]
     public int itensNecessarios = 2;
 
     private bool podePerseguir = false;
@@ -21,7 +23,6 @@ public class Perseguidor : MonoBehaviour
 
     [Header("Configurações de Animação")]
     public Animator animadorInimigo;
-
     public string nomeParametroCorrida = "isChasing";
 
     [Header("Configurações de Teleporte")]
@@ -29,21 +30,15 @@ public class Perseguidor : MonoBehaviour
 
     [Header("Configurações de Velocidade")]
     public float velocidadeModerada = 2f;
-
     public float aceleracaoInimigo = 4f;
-
     public float aumentoVelocidadePorItem = 1f;
 
     [Header("Configuração de Captura")]
-    [Tooltip("Distância mínima para confirmar a captura.")]
     public float distanciaCaptura = 1.5f;
-
-    [Tooltip("Tempo entre verificações da captura.")]
     public float intervaloVerificacaoCaptura = 0.05f;
 
     [Header("Configurações do Jumpscare")]
     public float tempoDeSusto = 2f;
-
     public float ajusteAlturaOlhar = 1.5f;
 
     [Header("Configuração de Game Over")]
@@ -56,9 +51,7 @@ public class Perseguidor : MonoBehaviour
 
     [Header("Drop da Moeda")]
     public GameObject prefabMoeda;
-
     public float ajusteAlturaMoeda = 0.5f;
-
     public float distanciaLadoMoeda = 1.2f;
 
     private bool moedaJaDropou = false;
@@ -69,35 +62,44 @@ public class Perseguidor : MonoBehaviour
 
     void Start()
     {
-        agent =
-            GetComponent<NavMeshAgent>();
+        agent = GetComponent<NavMeshAgent>();
+
+        if (agent == null)
+            agent = GetComponentInChildren<NavMeshAgent>();
+
+        empurraoRefri = GetComponentInChildren<EmpurraoRefri>();
+
+        if (empurraoRefri == null)
+            empurraoRefri = GetComponentInParent<EmpurraoRefri>();
 
         if (animadorInimigo == null)
-        {
-            animadorInimigo =
-                GetComponent<Animator>();
-        }
+            animadorInimigo = GetComponentInChildren<Animator>();
 
         GameObject playerObj =
             GameObject.FindGameObjectWithTag("Player");
 
         if (playerObj != null)
         {
-            jogador =
-                playerObj.transform;
+            jogador = playerObj.transform;
 
             jogadorMov =
                 playerObj.GetComponent<PlayerMovemen>();
         }
 
-        cameraPrincipal =
-            Camera.main;
+        cameraPrincipal = Camera.main;
 
-        // Começa desativado.
+        // COMEÇA PARADO
+        podePerseguir = false;
+
         if (agent != null)
         {
             agent.enabled = false;
         }
+
+        // ANIMAÇÃO DESLIGADA NO COMEÇO
+        AtualizarAnimacao(false);
+
+        Debug.Log("PERSEGUIDOR INICIADO: aguardando os objetos.");
     }
 
     // =====================================================
@@ -106,27 +108,48 @@ public class Perseguidor : MonoBehaviour
 
     void Update()
     {
-        // =================================================
-        // JÁ MORREU
-        // =================================================
-
         if (jaMorreu)
         {
             ExecutarJumpscare();
             return;
         }
 
-        // =================================================
-        // PERSEGUIÇÃO
-        // =================================================
+        // SE ESTIVER SENDO EMPURRADO PELO REFRIGERANTE
+        if (empurraoRefri != null &&
+            empurraoRefri.EstaSendoEmpurrado())
+        {
+            AtualizarAnimacao(false);
+            return;
+        }
 
+        // SÓ PERSEGUE DEPOIS DOS OBJETOS
         if (podePerseguir &&
             jogador != null &&
             agent != null &&
-            agent.isActiveAndEnabled)
+            agent.enabled &&
+            agent.isOnNavMesh)
         {
-            agent.SetDestination(
-                jogador.position
+            agent.SetDestination(jogador.position);
+
+            AtualizarAnimacao(true);
+        }
+        else
+        {
+            AtualizarAnimacao(false);
+        }
+    }
+
+    // =====================================================
+    // ANIMAÇÃO
+    // =====================================================
+
+    private void AtualizarAnimacao(bool correndo)
+    {
+        if (animadorInimigo != null)
+        {
+            animadorInimigo.SetBool(
+                nomeParametroCorrida,
+                correndo
             );
         }
     }
@@ -143,8 +166,7 @@ public class Perseguidor : MonoBehaviour
         Vector3 pontoParaOlhar =
             transform.position;
 
-        pontoParaOlhar.y +=
-            ajusteAlturaOlhar;
+        pontoParaOlhar.y += ajusteAlturaOlhar;
 
         cameraPrincipal.transform.LookAt(
             pontoParaOlhar
@@ -165,9 +187,17 @@ public class Perseguidor : MonoBehaviour
 
     public void RegistrarColeta()
     {
+        if (jaTeleportou || jaMorreu)
+            return;
+
         itensColetados++;
 
-        // Aumenta velocidade.
+        Debug.Log(
+            "OBJETOS COLETADOS: " +
+            itensColetados
+        );
+
+        // AUMENTAR VELOCIDADE
         if (agent != null)
         {
             agent.speed =
@@ -178,7 +208,7 @@ public class Perseguidor : MonoBehaviour
                 );
         }
 
-        // Drop da moeda.
+        // DROP DA MOEDA
         if (!moedaJaDropou)
         {
             DroparMoedaFisica();
@@ -186,11 +216,14 @@ public class Perseguidor : MonoBehaviour
             moedaJaDropou = true;
         }
 
-        // Ativa perseguição.
-        if (itensColetados >= itensNecessarios &&
-            !jaTeleportou)
+        // ATIVAR APENAS QUANDO PEGAR OS 2 OBJETOS
+        if (itensColetados >= itensNecessarios)
         {
             jaTeleportou = true;
+
+            Debug.Log(
+                "DOIS OBJETOS COLETADOS! PERSEGUIDOR ATIVADO!"
+            );
 
             TeleportarMonstro();
 
@@ -233,14 +266,6 @@ public class Perseguidor : MonoBehaviour
     {
         podePerseguir = true;
 
-        if (animadorInimigo != null)
-        {
-            animadorInimigo.SetBool(
-                nomeParametroCorrida,
-                true
-            );
-        }
-
         if (agent != null)
         {
             agent.enabled = true;
@@ -254,7 +279,17 @@ public class Perseguidor : MonoBehaviour
 
             agent.acceleration =
                 aceleracaoInimigo;
+
+            if (agent.isOnNavMesh)
+            {
+                agent.isStopped = false;
+            }
         }
+
+        // COMEÇAR ANIMAÇÃO DE CORRIDA
+        AtualizarAnimacao(true);
+
+        Debug.Log("PERSEGUIDOR COMEÇOU A CORRER!");
     }
 
     // =====================================================
@@ -263,24 +298,14 @@ public class Perseguidor : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Não captura se já morreu.
         if (jaMorreu)
             return;
 
-        // Não captura antes da perseguição.
         if (!podePerseguir)
             return;
 
-        // =================================================
-        // SÓ PLAYER
-        // =================================================
-
         if (!other.CompareTag("Player"))
             return;
-
-        // =================================================
-        // PEGAR PlayerMovemen
-        // =================================================
 
         PlayerMovemen player =
             other.GetComponentInParent<PlayerMovemen>();
@@ -288,23 +313,8 @@ public class Perseguidor : MonoBehaviour
         if (player == null)
             return;
 
-        // =================================================
-        // PROTEÇÃO CONTRA A VASSOURA
-        // =================================================
-
-        /*
-         * Se o player está sendo empurrado pela vassoura,
-         * não inicia o jumpscare neste frame.
-         */
-
         if (player.SofrendoBote)
-        {
             return;
-        }
-
-        // =================================================
-        // DISTÂNCIA REAL
-        // =================================================
 
         float distancia =
             Vector3.Distance(
@@ -313,13 +323,7 @@ public class Perseguidor : MonoBehaviour
             );
 
         if (distancia > distanciaCaptura)
-        {
             return;
-        }
-
-        // =================================================
-        // INICIA CAPTURA
-        // =================================================
 
         StartCoroutine(
             RotinaFocarNoMonstro()
@@ -335,15 +339,14 @@ public class Perseguidor : MonoBehaviour
         if (jaMorreu)
             yield break;
 
-        // ================================================
-        // ÚLTIMA VERIFICAÇÃO
-        // ================================================
-
         if (jogadorMov != null &&
             jogadorMov.SofrendoBote)
         {
             yield break;
         }
+
+        if (jogador == null)
+            yield break;
 
         float distancia =
             Vector3.Distance(
@@ -352,24 +355,14 @@ public class Perseguidor : MonoBehaviour
             );
 
         if (distancia > distanciaCaptura)
-        {
             yield break;
-        }
-
-        // ================================================
-        // MORTE
-        // ================================================
 
         jaMorreu = true;
 
-        // ================================================
         // CÂMERA
-        // ================================================
-
         if (cameraPrincipal == null)
         {
-            cameraPrincipal =
-                Camera.main;
+            cameraPrincipal = Camera.main;
         }
 
         if (cameraPrincipal != null)
@@ -378,60 +371,40 @@ public class Perseguidor : MonoBehaviour
                 cameraPrincipal.transform.localPosition;
         }
 
-        // ================================================
         // PARAR PERSEGUIDOR
-        // ================================================
-
-        if (agent != null)
+        if (agent != null && agent.enabled)
         {
-            agent.ResetPath();
-
-            agent.velocity =
-                Vector3.zero;
+            if (agent.isOnNavMesh)
+            {
+                agent.ResetPath();
+                agent.velocity = Vector3.zero;
+            }
 
             agent.enabled = false;
         }
 
-        // ================================================
         // PARAR ANIMAÇÃO
-        // ================================================
+        AtualizarAnimacao(false);
 
-        if (animadorInimigo != null)
-        {
-            animadorInimigo.SetBool(
-                nomeParametroCorrida,
-                false
-            );
-        }
-
-        // ================================================
-        // PARAR PLAYER
-        // ================================================
-
+        // PARAR JOGADOR
         if (jogadorMov != null)
         {
             jogadorMov.BloquearMovimento();
         }
 
-        // ================================================
-        // ESPERA
-        // ================================================
-
+        // ESPERAR
         yield return new WaitForSeconds(
             tempoDeSusto
         );
 
-        // ================================================
         // GAME OVER
-        // ================================================
-
         SceneManager.LoadScene(
             nomeCenaGameOver
         );
     }
 
     // =====================================================
-    // MOEDA
+    // DROP DA MOEDA
     // =====================================================
 
     private void DroparMoedaFisica()

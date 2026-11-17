@@ -170,8 +170,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Refri
   distancia: 10
   forca: 15
-  velocidadeJato: 6
-  tamanhoJato: 0.5
+  velocidadeJato: 20
+  anguloJato: 30
   efeitoJato: {fileID: 8661370476296191058, guid: 905e9b5ec1df6f949845524cb47771dd, type: 3}
   duracaoJato: 50
+  distanciaInicialJato: 0.5
   som: {fileID: 0}
+  empurrarSweep: 1
+  empurrarPerseguidor: 1
+  camadaDeteccao:
+    serializedVersion: 2
+    m_Bits: 4294967295

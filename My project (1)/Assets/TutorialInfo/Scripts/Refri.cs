@@ -1,6 +1,6 @@
 
 using UnityEngine;
-using UnityEngine.AI;
+using System.Collections.Generic;
 
 public class Refri : MonoBehaviour
 {
@@ -8,7 +8,6 @@ public class Refri : MonoBehaviour
     public float distancia = 10f;
     public float forca = 20f;
     public float velocidadeJato = 20f;
-    public float tamanhoJato = 0.5f;
 
     [Range(1f, 90f)]
     public float anguloJato = 30f;
@@ -16,6 +15,7 @@ public class Refri : MonoBehaviour
     [Header("Visual do Spray")]
     public GameObject efeitoJato;
     public float duracaoJato = 1f;
+    public float distanciaInicialJato = 0.5f;
 
     [Header("Som")]
     public AudioClip som;
@@ -35,114 +35,118 @@ public class Refri : MonoBehaviour
 
         if (cameraPrincipal == null)
         {
-            Debug.LogError(
-                "Câmera principal não encontrada!"
-            );
+            Debug.LogError("Câmera principal não encontrada!");
             return;
         }
+
+        Vector3 origem = cameraPrincipal.transform.position;
+
+        Vector3 direcao =
+            cameraPrincipal.transform.forward.normalized;
 
         Debug.Log("REFRI USADO!");
 
         // SOM
         if (som != null)
         {
-            AudioSource.PlayClipAtPoint(
-                som,
-                cameraPrincipal.transform.position
-            );
+            AudioSource.PlayClipAtPoint(som, origem);
         }
 
-        // EFEITO VISUAL
+        // CRIAR ESPUMA
         if (efeitoJato != null)
         {
             Vector3 posicaoInicial =
-                cameraPrincipal.transform.position +
-                cameraPrincipal.transform.forward * 0.5f;
+                origem + direcao * distanciaInicialJato;
 
             GameObject jato = Instantiate(
                 efeitoJato,
                 posicaoInicial,
-                cameraPrincipal.transform.rotation
+                Quaternion.LookRotation(direcao)
             );
 
-            Rigidbody rbJato =
-                jato.GetComponent<Rigidbody>();
+            // Remove Rigidbody, caso exista.
+            Rigidbody[] rigidbodies =
+                jato.GetComponentsInChildren<Rigidbody>();
 
-            if (rbJato == null)
-                rbJato = jato.AddComponent<Rigidbody>();
+            foreach (Rigidbody rb in rigidbodies)
+            {
+                Destroy(rb);
+            }
 
-            rbJato.useGravity = false;
-            rbJato.isKinematic = false;
+            // Movimento reto, sem física.
+            SprayMovimento movimento =
+                jato.AddComponent<SprayMovimento>();
 
-            rbJato.linearVelocity =
-                cameraPrincipal.transform.forward *
-                velocidadeJato;
-
-            Destroy(jato, duracaoJato);
+            movimento.Configurar(
+                direcao,
+                velocidadeJato,
+                duracaoJato
+            );
         }
 
-        // DETECTAR OBJETOS
+        // DETECTAR INIMIGOS
         Collider[] objetos = Physics.OverlapSphere(
-            cameraPrincipal.transform.position,
+            origem,
             distancia,
             camadaDeteccao,
             QueryTriggerInteraction.Collide
         );
+
+        HashSet<int> detectados = new HashSet<int>();
 
         foreach (Collider objeto in objetos)
         {
             if (objeto == null)
                 continue;
 
-            // NÃO EMPURRAR O PLAYER
-            if (objeto.transform.root ==
-                cameraPrincipal.transform.root)
+            Transform raiz = objeto.transform.root;
+
+            if (raiz == cameraPrincipal.transform.root)
                 continue;
 
-            Vector3 direcao =
-                objeto.bounds.center -
-                cameraPrincipal.transform.position;
+            Vector3 direcaoAlvo =
+                objeto.bounds.center - origem;
 
-            float distanciaObjeto = direcao.magnitude;
+            float distanciaAlvo = direcaoAlvo.magnitude;
 
-            if (distanciaObjeto <= 0.01f)
+            if (distanciaAlvo < 0.01f)
                 continue;
 
-            // VERIFICAR SE ESTÁ NA FRENTE
             float angulo = Vector3.Angle(
-                cameraPrincipal.transform.forward,
-                direcao.normalized
+                direcao,
+                direcaoAlvo.normalized
             );
 
             if (angulo > anguloJato)
                 continue;
 
-            // VERIFICAR OBSTÁCULOS
             if (Physics.Raycast(
-                cameraPrincipal.transform.position,
-                direcao.normalized,
+                origem,
+                direcaoAlvo.normalized,
                 out RaycastHit hit,
-                distanciaObjeto,
+                distanciaAlvo,
                 camadaDeteccao,
                 QueryTriggerInteraction.Ignore))
             {
-                if (hit.collider.transform.root !=
-                    objeto.transform.root)
+                if (hit.collider.transform.root != raiz)
                     continue;
             }
 
-            // FORÇA CONFORME DISTÂNCIA
+            if (!detectados.Add(raiz.GetInstanceID()))
+                continue;
+
             float multiplicador =
-                1f - Mathf.Clamp01(
-                    distanciaObjeto / distancia
-                );
+                1f - Mathf.Clamp01(distanciaAlvo / distancia);
 
             float forcaFinal =
                 forca * Mathf.Max(multiplicador, 0.2f);
 
-            // EMPURRAR SWEEP
+            // SWEEP
             Sweep sweep =
                 objeto.GetComponentInParent<Sweep>();
+
+            if (sweep == null)
+                sweep = raiz.GetComponentInChildren<Sweep>();
 
             if (sweep != null)
             {
@@ -152,22 +156,24 @@ public class Refri : MonoBehaviour
                 EmpurraoRefri empurrao =
                     sweep.GetComponent<EmpurraoRefri>();
 
-                if (empurrao != null)
-                {
-                    empurrao.Empurrar(
-                        direcao,
-                        forcaFinal
-                    );
+                if (empurrao == null)
+                    empurrao = sweep.GetComponentInChildren<EmpurraoRefri>();
 
-                    Debug.Log("REFRI EMPURROU A SWEEP!");
-                }
+                if (empurrao == null)
+                    empurrao = sweep.GetComponentInParent<EmpurraoRefri>();
+
+                if (empurrao != null)
+                    empurrao.Empurrar(direcaoAlvo.normalized, forcaFinal);
 
                 continue;
             }
 
-            // EMPURRAR PERSEGUIDOR
+            // PERSEGUIDOR
             Perseguidor perseguidor =
                 objeto.GetComponentInParent<Perseguidor>();
+
+            if (perseguidor == null)
+                perseguidor = raiz.GetComponentInChildren<Perseguidor>();
 
             if (perseguidor != null)
             {
@@ -177,33 +183,26 @@ public class Refri : MonoBehaviour
                 EmpurraoRefri empurrao =
                     perseguidor.GetComponent<EmpurraoRefri>();
 
-                if (empurrao != null)
-                {
-                    empurrao.Empurrar(
-                        direcao,
-                        forcaFinal
-                    );
+                if (empurrao == null)
+                    empurrao = perseguidor.GetComponentInChildren<EmpurraoRefri>();
 
-                    Debug.Log(
-                        "REFRI EMPURROU O PERSEGUIDOR!"
-                    );
-                }
+                if (empurrao == null)
+                    empurrao = perseguidor.GetComponentInParent<EmpurraoRefri>();
+
+                if (empurrao != null)
+                    empurrao.Empurrar(direcaoAlvo.normalized, forcaFinal);
 
                 continue;
             }
 
-            // EMPURRAR OBJETOS COM RIGIDBODY
-            Rigidbody rb = objeto.attachedRigidbody;
+            // OBJETOS COM RIGIDBODY
+            Rigidbody corpo = objeto.attachedRigidbody;
 
-            if (rb != null && !rb.isKinematic)
+            if (corpo != null && !corpo.isKinematic)
             {
-                rb.AddForce(
-                    direcao.normalized * forcaFinal,
+                corpo.AddForce(
+                    direcaoAlvo.normalized * forcaFinal,
                     ForceMode.Impulse
-                );
-
-                Debug.Log(
-                    "REFRI EMPURROU: " + objeto.name
                 );
             }
         }
@@ -220,5 +219,37 @@ public class Refri : MonoBehaviour
             Camera.main.transform.position,
             Camera.main.transform.forward * distancia
         );
+    }
+}
+
+// MOVIMENTO VISUAL DA ESPUMA
+public class SprayMovimento : MonoBehaviour
+{
+    private Vector3 direcao;
+    private float velocidade;
+    private float duracao;
+    private float tempo;
+
+    public void Configurar(
+        Vector3 novaDirecao,
+        float novaVelocidade,
+        float novaDuracao)
+    {
+        direcao = novaDirecao.normalized;
+        velocidade = novaVelocidade;
+        duracao = novaDuracao;
+    }
+
+    private void Update()
+    {
+        transform.position +=
+            direcao * velocidade * Time.deltaTime;
+
+        tempo += Time.deltaTime;
+
+        if (tempo >= duracao)
+        {
+            Destroy(gameObject);
+        }
     }
 }
