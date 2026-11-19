@@ -306,7 +306,7 @@ MonoBehaviour:
   tempoAteVoltar: 5
   imagensGameOver:
   - {fileID: 21300000, guid: 01b100601d405284091657ba0380ef4b, type: 3}
-  - {fileID: 21300000, guid: 7b9276d294b96c04fba8937a9efa22eb, type: 3}
+  - {fileID: 21300000, guid: ae9a53475a334e3448e16836342a8416, type: 3}
   - {fileID: 21300000, guid: e45a61a23ffe20945ad023ae75078724, type: 3}
   - {fileID: 21300000, guid: d4d5c2a02cfb24143bebb48a6340578a, type: 3}
   - {fileID: 21300000, guid: dfa35cd4f9b36a34184ee029c7300cf2, type: 3}
@@ -314,8 +314,10 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 1c5b27601f8b5314589ad2107b72ec92, type: 3}
   - {fileID: 21300000, guid: 4a975d7f875bae5429e818bffe111f56, type: 3}
   - {fileID: 21300000, guid: 076fef0ada12e65489a709df45b5695d, type: 3}
-  - {fileID: 21300000, guid: 4caaa777a76727a4993f2af442af0624, type: 3}
+  - {fileID: 21300000, guid: 95a6760f607b3164aac0ba92f962814d, type: 3}
   - {fileID: 21300000, guid: 36234695ea9e3be4eaf0d51e944a344f, type: 3}
+  - {fileID: 21300000, guid: 8f17aa9553d082640a2ab47067d04d62, type: 3}
+  - {fileID: 21300000, guid: bf4861447a4e0ae43893a7931feb209d, type: 3}
   imagemUI: {fileID: 2112435905}
 --- !u!4 &259751338
 Transform:

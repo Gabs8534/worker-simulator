@@ -14,5 +14,6 @@ public class OlharParaCamera : MonoBehaviour
         if (cam == null) return;
 
         transform.LookAt(cam.transform);
+        transform.Rotate(0, 180, 0);
     }
 }

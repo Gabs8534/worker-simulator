@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 5012917474155348182}
   - component: {fileID: 2618222477979814687}
   - component: {fileID: -7026215832170223806}
+  - component: {fileID: -757209275247968373}
   m_Layer: 0
   m_Name: Moeda
   m_TagString: Untagged
@@ -170,10 +171,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Moeda
   valor: 1
   flutuar: 1
-  amplitude: 0.2
-  velocidadeFlutuar: 2
+  amplitude: 0.1
+  velocidadeFlutuar: 1
   girarNoChao: 1
   velocidadeGiro: 50
   distanciaDaCamera: 0.7
   alturaNaCamera: -0.3
   ladoNaCamera: 0.5
+--- !u!114 &-757209275247968373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832522373605724627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c37405c56e3ab9e45a7df9e725acfd7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OlharParaCamera
