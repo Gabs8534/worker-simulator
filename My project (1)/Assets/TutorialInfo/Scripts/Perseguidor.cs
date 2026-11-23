@@ -62,10 +62,7 @@ public class Perseguidor : MonoBehaviour
 
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
-
-        if (agent == null)
-            agent = GetComponentInChildren<NavMeshAgent>();
+        EncontrarAgent();
 
         empurraoRefri = GetComponentInChildren<EmpurraoRefri>();
 
@@ -84,22 +81,43 @@ public class Perseguidor : MonoBehaviour
 
             jogadorMov =
                 playerObj.GetComponent<PlayerMovemen>();
+
+            if (jogadorMov == null)
+                jogadorMov = playerObj.GetComponentInChildren<PlayerMovemen>();
         }
 
         cameraPrincipal = Camera.main;
 
-        // COMEÇA PARADO
         podePerseguir = false;
 
         if (agent != null)
         {
             agent.enabled = false;
         }
+        else
+        {
+            Debug.LogError("NAVMESH AGENT NÃO ENCONTRADO!");
+        }
 
-        // ANIMAÇÃO DESLIGADA NO COMEÇO
+        AtualizarVelocidade();
         AtualizarAnimacao(false);
 
-        Debug.Log("PERSEGUIDOR INICIADO: aguardando os objetos.");
+        Debug.Log("PERSEGUIDOR INICIADO: aguardando os cadernos.");
+    }
+
+    // =====================================================
+    // ENCONTRAR NAVMESH
+    // =====================================================
+
+    private void EncontrarAgent()
+    {
+        agent = GetComponent<NavMeshAgent>();
+
+        if (agent == null)
+            agent = GetComponentInChildren<NavMeshAgent>();
+
+        if (agent == null)
+            agent = GetComponentInParent<NavMeshAgent>();
     }
 
     // =====================================================
@@ -114,7 +132,6 @@ public class Perseguidor : MonoBehaviour
             return;
         }
 
-        // SE ESTIVER SENDO EMPURRADO PELO REFRIGERANTE
         if (empurraoRefri != null &&
             empurraoRefri.EstaSendoEmpurrado())
         {
@@ -122,7 +139,6 @@ public class Perseguidor : MonoBehaviour
             return;
         }
 
-        // SÓ PERSEGUE DEPOIS DOS OBJETOS
         if (podePerseguir &&
             jogador != null &&
             agent != null &&
@@ -155,6 +171,43 @@ public class Perseguidor : MonoBehaviour
     }
 
     // =====================================================
+    // ATUALIZAR VELOCIDADE
+    // =====================================================
+
+    private void AtualizarVelocidade()
+    {
+        if (agent == null)
+            EncontrarAgent();
+
+        if (agent == null)
+            return;
+
+        float novaVelocidade =
+            velocidadeModerada +
+            (itensColetados * aumentoVelocidadePorItem);
+
+        agent.speed = novaVelocidade;
+
+        Debug.Log(
+            "================================"
+        );
+
+        Debug.Log(
+            "VELOCIDADE DO PERSEGUIDOR: " +
+            novaVelocidade
+        );
+
+        Debug.Log(
+            "CADERNOS RECEBIDOS: " +
+            itensColetados
+        );
+
+        Debug.Log(
+            "================================"
+        );
+    }
+
+    // =====================================================
     // JUMPSCARE
     // =====================================================
 
@@ -163,22 +216,17 @@ public class Perseguidor : MonoBehaviour
         if (cameraPrincipal == null)
             return;
 
-        Vector3 pontoParaOlhar =
-            transform.position;
+        Vector3 pontoParaOlhar = transform.position;
 
         pontoParaOlhar.y += ajusteAlturaOlhar;
 
-        cameraPrincipal.transform.LookAt(
-            pontoParaOlhar
-        );
+        cameraPrincipal.transform.LookAt(pontoParaOlhar);
 
         Vector3 tremor =
-            Random.insideUnitSphere *
-            forcaDoTremor;
+            Random.insideUnitSphere * forcaDoTremor;
 
         cameraPrincipal.transform.localPosition =
-            posicaoOriginalDaCamera +
-            tremor;
+            posicaoOriginalDaCamera + tremor;
     }
 
     // =====================================================
@@ -187,42 +235,32 @@ public class Perseguidor : MonoBehaviour
 
     public void RegistrarColeta()
     {
-        if (jaTeleportou || jaMorreu)
+        if (jaMorreu)
             return;
 
+        // CADA CADERNO AUMENTA A VELOCIDADE
         itensColetados++;
 
-        Debug.Log(
-            "OBJETOS COLETADOS: " +
-            itensColetados
-        );
+        Debug.Log("CADERNO RECEBIDO PELO PERSEGUIDOR!");
 
-        // AUMENTAR VELOCIDADE
-        if (agent != null)
-        {
-            agent.speed =
-                velocidadeModerada +
-                (
-                    itensColetados *
-                    aumentoVelocidadePorItem
-                );
-        }
+        // ATUALIZAR VELOCIDADE
+        AtualizarVelocidade();
 
         // DROP DA MOEDA
         if (!moedaJaDropou)
         {
             DroparMoedaFisica();
-
             moedaJaDropou = true;
         }
 
-        // ATIVAR APENAS QUANDO PEGAR OS 2 OBJETOS
-        if (itensColetados >= itensNecessarios)
+        // ATIVAR PERSEGUIÇÃO APENAS UMA VEZ
+        if (itensColetados >= itensNecessarios &&
+            !jaTeleportou)
         {
             jaTeleportou = true;
 
             Debug.Log(
-                "DOIS OBJETOS COLETADOS! PERSEGUIDOR ATIVADO!"
+                "QUANTIDADE NECESSÁRIA ATINGIDA! MONSTRO ATIVADO!"
             );
 
             TeleportarMonstro();
@@ -256,6 +294,17 @@ public class Perseguidor : MonoBehaviour
 
         transform.rotation =
             pontoDeTeleporteMonstro.rotation;
+
+        if (agent != null && agent.transform != transform)
+        {
+            agent.transform.position =
+                pontoDeTeleporteMonstro.position;
+
+            agent.transform.rotation =
+                pontoDeTeleporteMonstro.rotation;
+        }
+
+        Debug.Log("MONSTRO TELEPORTADO!");
     }
 
     // =====================================================
@@ -270,23 +319,39 @@ public class Perseguidor : MonoBehaviour
         {
             agent.enabled = true;
 
-            agent.speed =
-                velocidadeModerada +
-                (
-                    itensColetados *
-                    aumentoVelocidadePorItem
-                );
+            // APLICAR VELOCIDADE ACUMULADA
+            AtualizarVelocidade();
 
-            agent.acceleration =
-                aceleracaoInimigo;
+            agent.acceleration = aceleracaoInimigo;
+
+            // GARANTIR QUE O AGENT ESTEJA NO NAVMESH
+            if (!agent.isOnNavMesh)
+            {
+                NavMeshHit hit;
+
+                if (NavMesh.SamplePosition(
+                    agent.transform.position,
+                    out hit,
+                    5f,
+                    agent.areaMask))
+                {
+                    agent.Warp(hit.position);
+                }
+            }
 
             if (agent.isOnNavMesh)
             {
                 agent.isStopped = false;
+                agent.ResetPath();
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "MONSTRO NÃO ESTÁ SOBRE O NAVMESH!"
+                );
             }
         }
 
-        // COMEÇAR ANIMAÇÃO DE CORRIDA
         AtualizarAnimacao(true);
 
         Debug.Log("PERSEGUIDOR COMEÇOU A CORRER!");
@@ -325,9 +390,7 @@ public class Perseguidor : MonoBehaviour
         if (distancia > distanciaCaptura)
             return;
 
-        StartCoroutine(
-            RotinaFocarNoMonstro()
-        );
+        StartCoroutine(RotinaFocarNoMonstro());
     }
 
     // =====================================================
@@ -359,7 +422,6 @@ public class Perseguidor : MonoBehaviour
 
         jaMorreu = true;
 
-        // CÂMERA
         if (cameraPrincipal == null)
         {
             cameraPrincipal = Camera.main;
@@ -392,15 +454,10 @@ public class Perseguidor : MonoBehaviour
             jogadorMov.BloquearMovimento();
         }
 
-        // ESPERAR
-        yield return new WaitForSeconds(
-            tempoDeSusto
-        );
+        yield return new WaitForSeconds(tempoDeSusto);
 
         // GAME OVER
-        SceneManager.LoadScene(
-            nomeCenaGameOver
-        );
+        SceneManager.LoadScene(nomeCenaGameOver);
     }
 
     // =====================================================
@@ -412,15 +469,12 @@ public class Perseguidor : MonoBehaviour
         if (prefabMoeda == null)
             return;
 
-        Vector3 posicaoDrop =
-            transform.position;
+        Vector3 posicaoDrop = transform.position;
 
-        posicaoDrop.y +=
-            ajusteAlturaMoeda;
+        posicaoDrop.y += ajusteAlturaMoeda;
 
         posicaoDrop +=
-            transform.right *
-            distanciaLadoMoeda;
+            transform.right * distanciaLadoMoeda;
 
         Instantiate(
             prefabMoeda,

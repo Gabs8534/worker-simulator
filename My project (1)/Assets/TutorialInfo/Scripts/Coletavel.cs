@@ -30,6 +30,7 @@ public class Coletavel : MonoBehaviour
 
     private Vector3 posicaoInicial;
     private bool coletado = false;
+
     private static bool mundoVermelhoAtivado = false;
 
     public static int objetosColetadosTotais = 0;
@@ -38,11 +39,22 @@ public class Coletavel : MonoBehaviour
 
     private static TextMeshProUGUI textoContador;
 
+    // =====================================================
+    // AWAKE
+    // =====================================================
+
     private void Awake()
     {
         if (controleSaidas == null)
-            controleSaidas = FindFirstObjectByType<ControleSaidas>();
+        {
+            controleSaidas =
+                FindFirstObjectByType<ControleSaidas>();
+        }
     }
+
+    // =====================================================
+    // START
+    // =====================================================
 
     private void Start()
     {
@@ -50,10 +62,14 @@ public class Coletavel : MonoBehaviour
 
         if (textoContador == null)
         {
-            GameObject objetoTexto = GameObject.Find("TextoContador");
+            GameObject objetoTexto =
+                GameObject.Find("TextoContador");
 
             if (objetoTexto != null)
-                textoContador = objetoTexto.GetComponent<TextMeshProUGUI>();
+            {
+                textoContador =
+                    objetoTexto.GetComponent<TextMeshProUGUI>();
+            }
         }
 
         if (paredeBloqueioInicio != null)
@@ -66,14 +82,21 @@ public class Coletavel : MonoBehaviour
         AtualizarTextoUI();
     }
 
+    // =====================================================
+    // UPDATE
+    // =====================================================
+
     private void Update()
     {
         if (coletado)
             return;
 
-        transform.Rotate(velocidadeRotacao * Time.deltaTime);
+        transform.Rotate(
+            velocidadeRotacao * Time.deltaTime
+        );
 
-        float novoY = posicaoInicial.y +
+        float novoY =
+            posicaoInicial.y +
             Mathf.Sin(Time.time * velocidadeFlutuacao) * amplitude;
 
         transform.position = new Vector3(
@@ -83,38 +106,58 @@ public class Coletavel : MonoBehaviour
         );
     }
 
+    // =====================================================
+    // COLETA
+    // =====================================================
+
     private void OnMouseDown()
     {
-        if (coletado || objetosColetadosTotais >= limiteMaximoObjetos)
+        if (coletado ||
+            objetosColetadosTotais >= limiteMaximoObjetos)
             return;
 
         coletado = true;
 
         if (somColeta != null)
-            AudioSource.PlayClipAtPoint(somColeta, transform.position);
+        {
+            AudioSource.PlayClipAtPoint(
+                somColeta,
+                transform.position
+            );
+        }
 
         if (prefabParticulasColeta != null)
-            Instantiate(prefabParticulasColeta, transform.position, Quaternion.identity);
+        {
+            Instantiate(
+                prefabParticulasColeta,
+                transform.position,
+                Quaternion.identity
+            );
+        }
 
         objetosColetadosTotais++;
 
         AtualizarTextoUI();
 
         Debug.Log(
-            $"Cadernos coletados: {objetosColetadosTotais}/{limiteMaximoObjetos}"
+            "CADERNOS COLETADOS: " +
+            objetosColetadosTotais +
+            "/" +
+            limiteMaximoObjetos
         );
 
-        // Abre a parede inicial.
+        // ABRIR PAREDE INICIAL
         if (
             objetosColetadosTotais >= itensParaAbrirParedeInicio &&
             paredeBloqueioInicio != null
         )
         {
             paredeBloqueioInicio.SetActive(false);
-            Debug.Log("Parede inicial aberta.");
+
+            Debug.Log("PAREDE INICIAL ABERTA!");
         }
 
-        // Mundo fica vermelho ao coletar 7 cadernos.
+        // ATIVAR MUNDO VERMELHO
         if (
             objetosColetadosTotais >= cadernosParaMundoVermelho &&
             !mundoVermelhoAtivado
@@ -123,8 +166,11 @@ public class Coletavel : MonoBehaviour
             AtivarMundoVermelho();
         }
 
+        // ATUALIZAR PORTAS
         PortaAutomatica[] portas =
-            FindObjectsByType<PortaAutomatica>(FindObjectsSortMode.None);
+            FindObjectsByType<PortaAutomatica>(
+                FindObjectsSortMode.None
+            );
 
         foreach (PortaAutomatica porta in portas)
         {
@@ -132,20 +178,40 @@ public class Coletavel : MonoBehaviour
                 porta.SomarObjeto();
         }
 
+        // AVISAR TODOS OS PERSEGUIDORES
         Perseguidor[] perseguidores =
-            FindObjectsByType<Perseguidor>(FindObjectsSortMode.None);
+            FindObjectsByType<Perseguidor>(
+                FindObjectsSortMode.None
+            );
 
         foreach (Perseguidor inimigo in perseguidores)
         {
             if (inimigo != null)
+            {
                 inimigo.RegistrarColeta();
+
+                Debug.Log(
+                    "COLETA ENVIADA AO PERSEGUIDOR: " +
+                    inimigo.name
+                );
+            }
         }
 
-        if (objetosColetadosTotais >= limiteMaximoObjetos && !allCollected)
+        // FINAL DO JOGO
+        if (
+            objetosColetadosTotais >= limiteMaximoObjetos &&
+            !allCollected
+        )
+        {
             TriggerEndgame();
+        }
 
         StartCoroutine(AnimacaoColeta());
     }
+
+    // =====================================================
+    // MUNDO VERMELHO
+    // =====================================================
 
     private void AtivarMundoVermelho()
     {
@@ -154,7 +220,9 @@ public class Coletavel : MonoBehaviour
         Debug.Log("O MUNDO FICOU VERMELHO!");
 
         Renderer[] renderers =
-            FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+            FindObjectsByType<Renderer>(
+                FindObjectsSortMode.None
+            );
 
         foreach (Renderer rend in renderers)
         {
@@ -164,33 +232,57 @@ public class Coletavel : MonoBehaviour
             foreach (Material material in rend.materials)
             {
                 if (material.HasProperty("_BaseColor"))
-                    material.SetColor("_BaseColor", corMundo);
+                {
+                    material.SetColor(
+                        "_BaseColor",
+                        corMundo
+                    );
+                }
                 else if (material.HasProperty("_Color"))
-                    material.SetColor("_Color", corMundo);
+                {
+                    material.SetColor(
+                        "_Color",
+                        corMundo
+                    );
+                }
             }
         }
     }
+
+    // =====================================================
+    // ENDGAME
+    // =====================================================
 
     private void TriggerEndgame()
     {
         allCollected = true;
 
-        Debug.Log("10 cadernos coletados! Ativando modo fuga.");
+        Debug.Log(
+            "10 CADERNOS COLETADOS! ATIVANDO MODO FUGA."
+        );
 
         if (paredeBloqueioInicio != null)
             paredeBloqueioInicio.SetActive(false);
 
-        // Mantém o efeito vermelho no modo fuga.
         if (!mundoVermelhoAtivado)
             AtivarMundoVermelho();
 
         if (ControladorBarreiras.Instance != null)
+        {
             ControladorBarreiras.Instance.LigarParedes(false);
+        }
         else
-            Debug.LogWarning("ControladorBarreiras não encontrado.");
+        {
+            Debug.LogWarning(
+                "ControladorBarreiras não encontrado."
+            );
+        }
 
         if (controleSaidas == null)
-            controleSaidas = FindFirstObjectByType<ControleSaidas>();
+        {
+            controleSaidas =
+                FindFirstObjectByType<ControleSaidas>();
+        }
 
         if (controleSaidas != null)
         {
@@ -204,20 +296,36 @@ public class Coletavel : MonoBehaviour
         }
     }
 
+    // =====================================================
+    // TEXTO UI
+    // =====================================================
+
     private void AtualizarTextoUI()
     {
         if (textoContador == null)
         {
-            GameObject objetoTexto = GameObject.Find("TextoContador");
+            GameObject objetoTexto =
+                GameObject.Find("TextoContador");
 
             if (objetoTexto != null)
-                textoContador = objetoTexto.GetComponent<TextMeshProUGUI>();
+            {
+                textoContador =
+                    objetoTexto.GetComponent<TextMeshProUGUI>();
+            }
         }
 
         if (textoContador != null)
+        {
             textoContador.text =
-                $"{objetosColetadosTotais}/{limiteMaximoObjetos}";
+                objetosColetadosTotais +
+                "/" +
+                limiteMaximoObjetos;
+        }
     }
+
+    // =====================================================
+    // ANIMAÇÃO DE COLETA
+    // =====================================================
 
     private IEnumerator AnimacaoColeta()
     {
@@ -232,7 +340,9 @@ public class Coletavel : MonoBehaviour
         if (duracaoAnimacaoSumir <= 0f)
         {
             transform.localScale = Vector3.zero;
+
             Destroy(gameObject);
+
             yield break;
         }
 
@@ -260,6 +370,7 @@ public class Coletavel : MonoBehaviour
         }
 
         transform.localScale = Vector3.zero;
+
         Destroy(gameObject);
     }
 }

@@ -13,7 +13,15 @@ public class OlharParaCamera : MonoBehaviour
     {
         if (cam == null) return;
 
-        transform.LookAt(cam.transform);
-        transform.Rotate(0, 180, 0);
+        Vector3 direcao = cam.transform.position - transform.position;
+
+        // Ignora a diferença de altura
+        direcao.y = 0;
+
+        if (direcao.sqrMagnitude > 0.001f)
+        {
+            transform.rotation = Quaternion.LookRotation(direcao);
+            transform.Rotate(0, 180, 0);
+        }
     }
 }
