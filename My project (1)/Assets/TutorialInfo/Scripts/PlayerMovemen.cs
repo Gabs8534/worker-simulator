@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,7 +25,6 @@ public class PlayerMovemen : MonoBehaviour
     public Slider barraEstamina;
     public float estaminaMaxima = 100f;
     public float estaminaAtual;
-
     public float gastoEstamina = 20f;
     public float recargaEstamina = 15f;
 
@@ -50,28 +48,19 @@ public class PlayerMovemen : MonoBehaviour
 
     [Header("Bote da Vassoura")]
     private bool sofrendoBote = false;
-
     private Vector3 direcaoBote = Vector3.zero;
-
     private float velocidadeBote = 0f;
 
     public bool SofrendoBote
     {
-        get
-        {
-            return sofrendoBote;
-        }
+        get { return sofrendoBote; }
     }
 
     private Vector3 moveDirection = Vector3.zero;
-
     private CharacterController characterController;
-
     private bool canMove = true;
 
-    // =====================================================
     // START
-    // =====================================================
 
     private void Start()
     {
@@ -91,31 +80,30 @@ public class PlayerMovemen : MonoBehaviour
         characterController.height = defaultHeight;
     }
 
-    // =====================================================
+    // LIBERA O MOUSE AO SAIR DA CENA / SER DESTRUÍDO
+
+    private void OnDestroy()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
     // UPDATE
-    // =====================================================
 
     private void Update()
     {
         MovimentarPlayer();
     }
 
-    // =====================================================
     // MOVIMENTO PRINCIPAL
-    // =====================================================
 
     private void MovimentarPlayer()
     {
         if (characterController == null)
             return;
 
-        Vector3 forward =
-            transform.TransformDirection(Vector3.forward);
-
-        Vector3 right =
-            transform.TransformDirection(Vector3.right);
-
-        // ESTAMINA
+        Vector3 forward = transform.TransformDirection(Vector3.forward);
+        Vector3 right = transform.TransformDirection(Vector3.right);
 
         AtualizarEstamina();
 
@@ -125,27 +113,21 @@ public class PlayerMovemen : MonoBehaviour
             !exausto &&
             canMove;
 
-        // AGACHAR
-
         float velocidadeCaminhada = walkSpeed;
         float velocidadeCorrida = runSpeed;
 
         if (Input.GetKey(KeyCode.R) && canMove)
         {
             characterController.height = crouchHeight;
-
             velocidadeCaminhada = crouchSpeed;
             velocidadeCorrida = crouchSpeed;
         }
         else
         {
             characterController.height = defaultHeight;
-
             velocidadeCaminhada = walkSpeed;
             velocidadeCorrida = runSpeed;
         }
-
-        // VASSOURA
 
         if (estaNaVassoura)
         {
@@ -153,45 +135,26 @@ public class PlayerMovemen : MonoBehaviour
             velocidadeCorrida *= multiplicadorLentidaoVassoura;
         }
 
-        // VELOCIDADE ATUAL
-
-        float velocidadeAtual =
-            isRunning ? velocidadeCorrida : velocidadeCaminhada;
-
-        // INPUT
+        float velocidadeAtual = isRunning ? velocidadeCorrida : velocidadeCaminhada;
 
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        float curSpeedX =
-            canMove ? velocidadeAtual * vertical : 0f;
-
-        float curSpeedY =
-            canMove ? velocidadeAtual * horizontal : 0f;
+        float curSpeedX = canMove ? velocidadeAtual * vertical : 0f;
+        float curSpeedY = canMove ? velocidadeAtual * horizontal : 0f;
 
         float movimentoVerticalAnterior = moveDirection.y;
 
-        // MOVIMENTO NORMAL
-
-        moveDirection =
-            (forward * curSpeedX) +
-            (right * curSpeedY);
-
-        // BOTE DA VASSOURA
+        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
 
         if (sofrendoBote)
         {
             moveDirection.x = direcaoBote.x * velocidadeBote;
             moveDirection.z = direcaoBote.z * velocidadeBote;
-
             sofrendoBote = false;
         }
 
-        // PULO
-
-        if (Input.GetButton("Jump") &&
-            canMove &&
-            characterController.isGrounded)
+        if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
         {
             moveDirection.y = jumpPower;
         }
@@ -199,8 +162,6 @@ public class PlayerMovemen : MonoBehaviour
         {
             moveDirection.y = movimentoVerticalAnterior;
         }
-
-        // GRAVIDADE
 
         if (!characterController.isGrounded)
         {
@@ -211,27 +172,17 @@ public class PlayerMovemen : MonoBehaviour
             moveDirection.y = -2f;
         }
 
-        // APLICA MOVIMENTO
-
-        characterController.Move(
-            moveDirection * Time.deltaTime
-        );
-
-        // CÂMERA
+        characterController.Move(moveDirection * Time.deltaTime);
 
         if (canMove)
         {
             RotacionarCamera();
         }
 
-        // RESET DA VASSOURA
-
         estaNaVassoura = false;
     }
 
-    // =====================================================
     // ESTAMINA
-    // =====================================================
 
     private void AtualizarEstamina()
     {
@@ -264,11 +215,7 @@ public class PlayerMovemen : MonoBehaviour
             }
         }
 
-        estaminaAtual = Mathf.Clamp(
-            estaminaAtual,
-            0f,
-            estaminaMaxima
-        );
+        estaminaAtual = Mathf.Clamp(estaminaAtual, 0f, estaminaMaxima);
 
         if (barraEstamina != null)
         {
@@ -276,9 +223,7 @@ public class PlayerMovemen : MonoBehaviour
         }
     }
 
-    // =====================================================
     // CÂMERA - SOMENTE ESQUERDA E DIREITA
-    // =====================================================
 
     private void RotacionarCamera()
     {
@@ -286,21 +231,12 @@ public class PlayerMovemen : MonoBehaviour
             return;
 
         float mouseX = Input.GetAxis("Mouse X");
-
-        transform.Rotate(
-            0f,
-            mouseX * lookSpeed,
-            0f
-        );
+        transform.Rotate(0f, mouseX * lookSpeed, 0f);
     }
 
-    // =====================================================
     // BOTE DA VASSOURA
-    // =====================================================
 
-    public void EmpurrarPorBote(
-        Vector3 direcao,
-        float velocidade)
+    public void EmpurrarPorBote(Vector3 direcao, float velocidade)
     {
         direcao.y = 0f;
 
@@ -309,16 +245,12 @@ public class PlayerMovemen : MonoBehaviour
 
         direcaoBote = direcao.normalized;
         velocidadeBote = velocidade;
-
         sofrendoBote = true;
     }
 
-    // =====================================================
     // COLISÃO COM OBJETOS
-    // =====================================================
 
-    private void OnControllerColliderHit(
-        ControllerColliderHit hit)
+    private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         Rigidbody body = hit.collider.attachedRigidbody;
 
@@ -347,9 +279,7 @@ public class PlayerMovemen : MonoBehaviour
         );
     }
 
-    // =====================================================
     // CONTROLE DO PLAYER
-    // =====================================================
 
     public void BloquearMovimento()
     {
@@ -364,15 +294,8 @@ public class PlayerMovemen : MonoBehaviour
 
     public bool PodeMover()
     {
-        return canMove;
-    }
-
-    // =====================================================
-    // VASSOURA
-    // =====================================================
-
-    public bool EstaNaVassoura()
-    {
-        return estaNaVassoura;
+     return canMove;
     }
 }
+
+    //

@@ -3770,11 +3770,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &108801661
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -8431,6 +8431,117 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   bloqueioDaPorta: {fileID: 0}
   cenaVitoria: TelaDeVitoria
+--- !u!1 &227935619
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 227935620}
+  - component: {fileID: 227935623}
+  - component: {fileID: 227935622}
+  - component: {fileID: 227935621}
+  m_Layer: 6
+  m_Name: Cube (112)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &227935620
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 227935619}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.4982508, y: -0.5017616, z: -0.5055504, w: 0.49436852}
+  m_LocalPosition: {x: -9.8659, y: 2.0702, z: 44.8771}
+  m_LocalScale: {x: 12.722103, y: 0.09961427, z: 4.3494105}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1743753416}
+  m_LocalEulerAnglesHint: {x: -90.44, y: -89.72299, z: -1.1190186}
+--- !u!65 &227935621
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 227935619}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &227935622
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 227935619}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 58980d1b5cbc70d46988c50e7e46b568, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &227935623
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 227935619}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &228664494
 GameObject:
   m_ObjectHideFlags: 0
@@ -8485,11 +8596,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &228674168
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -8606,6 +8717,117 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 236547282}
   m_Mesh: {fileID: 3722170503078652854, guid: e0d31913657846c4e9344974cc7f73dd, type: 3}
+--- !u!1 &238843118
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 238843122}
+  - component: {fileID: 238843121}
+  - component: {fileID: 238843120}
+  - component: {fileID: 238843119}
+  m_Layer: 0
+  m_Name: Cube (151)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &238843119
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238843118}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &238843120
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238843118}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 9b7526b4746469242be4f06d7aa47302, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &238843121
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238843118}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &238843122
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238843118}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7109004, z: -0, w: 0.70329267}
+  m_LocalPosition: {x: -19.7118, y: 4.1, z: 14.6155}
+  m_LocalScale: {x: 16.207445, y: 0.068329, z: 9.374142}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90.616, z: 0}
 --- !u!1 &241883997
 GameObject:
   m_ObjectHideFlags: 0
@@ -11180,11 +11402,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &293404089
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11567,11 +11789,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &295990991
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -15860,11 +16082,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &397129622
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -16674,11 +16896,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &424269156
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -19096,11 +19318,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &503911652
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -21526,11 +21748,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &592930473
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -25686,11 +25908,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &711976187
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -26630,11 +26852,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &741443243
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -26884,11 +27106,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &748430517
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -33109,8 +33331,8 @@ Transform:
   m_GameObject: {fileID: 894881526}
   serializedVersion: 2
   m_LocalRotation: {x: -0.4982508, y: -0.5017616, z: -0.5055504, w: 0.49436852}
-  m_LocalPosition: {x: 3.8167, y: 1.9999, z: 43.2019}
-  m_LocalScale: {x: 15.654924, y: 0.09961427, z: 4.3494105}
+  m_LocalPosition: {x: 3.8166, y: 1.9999, z: 43.2051}
+  m_LocalScale: {x: 15.887473, y: 0.09961427, z: 4.3494105}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1743753416}
@@ -43842,11 +44064,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &1199856877
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -54065,11 +54287,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &1344789105
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -56324,11 +56546,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: Vitoria
 --- !u!65 &1400947390
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -56600,11 +56822,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &1409025775
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -57855,11 +58077,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &1454930401
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -57914,11 +58136,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: Vitoria
 --- !u!65 &1457178667
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -60727,11 +60949,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &1532817417
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -70582,6 +70804,7 @@ Transform:
   - {fileID: 1851474295}
   - {fileID: 359030237}
   - {fileID: 894881527}
+  - {fileID: 227935620}
   - {fileID: 1425785989}
   - {fileID: 1560897141}
   - {fileID: 83514003}
@@ -79848,11 +80071,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &1981438131
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -86004,11 +86227,11 @@ MonoBehaviour:
   duracaoAnimacaoSumir: 0.5
   prefabParticulasColeta: {fileID: 1258068614}
   somColeta: {fileID: 0}
-  controleSaidas: {fileID: 0}
   paredeBloqueioInicio: {fileID: 0}
   itensParaAbrirParedeInicio: 2
   corMundo: {r: 1, g: 0, b: 0, a: 1}
   cadernosParaMundoVermelho: 7
+  nomeCenaVitoria: TelaVitoria
 --- !u!65 &2128819235
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -90329,6 +90552,10 @@ PrefabInstance:
       propertyPath: velocidadeFlutuar
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6999253639396021488, guid: 15e4d43beec6b7e478cc92518473a499, type: 3}
+      propertyPath: distancia
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 9191596108133311579, guid: 15e4d43beec6b7e478cc92518473a499, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.27
@@ -92432,6 +92659,7 @@ SceneRoots:
   - {fileID: 188160799}
   - {fileID: 889716809}
   - {fileID: 1316970011}
+  - {fileID: 238843122}
   - {fileID: 1945888519}
   - {fileID: 2044602675}
   - {fileID: 2023724078}

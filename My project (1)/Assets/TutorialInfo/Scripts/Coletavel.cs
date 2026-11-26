@@ -1,6 +1,6 @@
-
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class Coletavel : MonoBehaviour
@@ -17,9 +17,6 @@ public class Coletavel : MonoBehaviour
     public GameObject prefabParticulasColeta;
     public AudioClip somColeta;
 
-    [Header("Configurações de Fuga")]
-    [SerializeField] private ControleSaidas controleSaidas;
-
     [Header("Parede de Saída Inicial")]
     public GameObject paredeBloqueioInicio;
     public int itensParaAbrirParedeInicio = 2;
@@ -27,6 +24,9 @@ public class Coletavel : MonoBehaviour
     [Header("Mundo Vermelho")]
     public Color corMundo = Color.red;
     public int cadernosParaMundoVermelho = 7;
+
+    [Header("Vitória")]
+    public string nomeCenaVitoria = "TelaVitoria";
 
     private Vector3 posicaoInicial;
     private bool coletado = false;
@@ -40,19 +40,6 @@ public class Coletavel : MonoBehaviour
     private static TextMeshProUGUI textoContador;
 
     // =====================================================
-    // AWAKE
-    // =====================================================
-
-    private void Awake()
-    {
-        if (controleSaidas == null)
-        {
-            controleSaidas =
-                FindFirstObjectByType<ControleSaidas>();
-        }
-    }
-
-    // =====================================================
     // START
     // =====================================================
 
@@ -62,13 +49,11 @@ public class Coletavel : MonoBehaviour
 
         if (textoContador == null)
         {
-            GameObject objetoTexto =
-                GameObject.Find("TextoContador");
+            GameObject objetoTexto = GameObject.Find("TextoContador");
 
             if (objetoTexto != null)
             {
-                textoContador =
-                    objetoTexto.GetComponent<TextMeshProUGUI>();
+                textoContador = objetoTexto.GetComponent<TextMeshProUGUI>();
             }
         }
 
@@ -91,9 +76,7 @@ public class Coletavel : MonoBehaviour
         if (coletado)
             return;
 
-        transform.Rotate(
-            velocidadeRotacao * Time.deltaTime
-        );
+        transform.Rotate(velocidadeRotacao * Time.deltaTime);
 
         float novoY =
             posicaoInicial.y +
@@ -112,18 +95,14 @@ public class Coletavel : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (coletado ||
-            objetosColetadosTotais >= limiteMaximoObjetos)
+        if (coletado || objetosColetadosTotais >= limiteMaximoObjetos)
             return;
 
         coletado = true;
 
         if (somColeta != null)
         {
-            AudioSource.PlayClipAtPoint(
-                somColeta,
-                transform.position
-            );
+            AudioSource.PlayClipAtPoint(somColeta, transform.position);
         }
 
         if (prefabParticulasColeta != null)
@@ -147,30 +126,23 @@ public class Coletavel : MonoBehaviour
         );
 
         // ABRIR PAREDE INICIAL
-        if (
-            objetosColetadosTotais >= itensParaAbrirParedeInicio &&
-            paredeBloqueioInicio != null
-        )
+        if (objetosColetadosTotais >= itensParaAbrirParedeInicio &&
+            paredeBloqueioInicio != null)
         {
             paredeBloqueioInicio.SetActive(false);
-
             Debug.Log("PAREDE INICIAL ABERTA!");
         }
 
         // ATIVAR MUNDO VERMELHO
-        if (
-            objetosColetadosTotais >= cadernosParaMundoVermelho &&
-            !mundoVermelhoAtivado
-        )
+        if (objetosColetadosTotais >= cadernosParaMundoVermelho &&
+            !mundoVermelhoAtivado)
         {
             AtivarMundoVermelho();
         }
 
         // ATUALIZAR PORTAS
         PortaAutomatica[] portas =
-            FindObjectsByType<PortaAutomatica>(
-                FindObjectsSortMode.None
-            );
+            FindObjectsByType<PortaAutomatica>(FindObjectsSortMode.None);
 
         foreach (PortaAutomatica porta in portas)
         {
@@ -180,9 +152,7 @@ public class Coletavel : MonoBehaviour
 
         // AVISAR TODOS OS PERSEGUIDORES
         Perseguidor[] perseguidores =
-            FindObjectsByType<Perseguidor>(
-                FindObjectsSortMode.None
-            );
+            FindObjectsByType<Perseguidor>(FindObjectsSortMode.None);
 
         foreach (Perseguidor inimigo in perseguidores)
         {
@@ -191,17 +161,13 @@ public class Coletavel : MonoBehaviour
                 inimigo.RegistrarColeta();
 
                 Debug.Log(
-                    "COLETA ENVIADA AO PERSEGUIDOR: " +
-                    inimigo.name
+                    "COLETA ENVIADA AO PERSEGUIDOR: " + inimigo.name
                 );
             }
         }
 
-        // FINAL DO JOGO
-        if (
-            objetosColetadosTotais >= limiteMaximoObjetos &&
-            !allCollected
-        )
+        // VITÓRIA
+        if (objetosColetadosTotais >= limiteMaximoObjetos && !allCollected)
         {
             TriggerEndgame();
         }
@@ -220,9 +186,7 @@ public class Coletavel : MonoBehaviour
         Debug.Log("O MUNDO FICOU VERMELHO!");
 
         Renderer[] renderers =
-            FindObjectsByType<Renderer>(
-                FindObjectsSortMode.None
-            );
+            FindObjectsByType<Renderer>(FindObjectsSortMode.None);
 
         foreach (Renderer rend in renderers)
         {
@@ -233,67 +197,41 @@ public class Coletavel : MonoBehaviour
             {
                 if (material.HasProperty("_BaseColor"))
                 {
-                    material.SetColor(
-                        "_BaseColor",
-                        corMundo
-                    );
+                    material.SetColor("_BaseColor", corMundo);
                 }
                 else if (material.HasProperty("_Color"))
                 {
-                    material.SetColor(
-                        "_Color",
-                        corMundo
-                    );
+                    material.SetColor("_Color", corMundo);
                 }
             }
         }
     }
 
     // =====================================================
-    // ENDGAME
+    // VITÓRIA
     // =====================================================
 
     private void TriggerEndgame()
     {
         allCollected = true;
+        Debug.Log("10 CADERNOS COLETADOS! VITÓRIA!");
+    }
 
-        Debug.Log(
-            "10 CADERNOS COLETADOS! ATIVANDO MODO FUGA."
-        );
+    private void IrParaVitoria()
+    {
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneManager.LoadScene(nomeCenaVitoria);
+    }
 
-        if (paredeBloqueioInicio != null)
-            paredeBloqueioInicio.SetActive(false);
-
-        if (!mundoVermelhoAtivado)
-            AtivarMundoVermelho();
-
-        if (ControladorBarreiras.Instance != null)
-        {
-            ControladorBarreiras.Instance.LigarParedes(false);
-        }
-        else
-        {
-            Debug.LogWarning(
-                "ControladorBarreiras não encontrado."
-            );
-        }
-
-        if (controleSaidas == null)
-        {
-            controleSaidas =
-                FindFirstObjectByType<ControleSaidas>();
-        }
-
-        if (controleSaidas != null)
-        {
-            controleSaidas.BloquearSaidas();
-        }
-        else
-        {
-            Debug.LogError(
-                "Não foi encontrado ControleSaidas ativo na cena!"
-            );
-        }
+    // Chame antes de começar uma nova partida (no Jogar() do menu)
+    public static void ResetarEstado()
+    {
+        objetosColetadosTotais = 0;
+        allCollected = false;
+        mundoVermelhoAtivado = false;
+        textoContador = null;
     }
 
     // =====================================================
@@ -304,22 +242,18 @@ public class Coletavel : MonoBehaviour
     {
         if (textoContador == null)
         {
-            GameObject objetoTexto =
-                GameObject.Find("TextoContador");
+            GameObject objetoTexto = GameObject.Find("TextoContador");
 
             if (objetoTexto != null)
             {
-                textoContador =
-                    objetoTexto.GetComponent<TextMeshProUGUI>();
+                textoContador = objetoTexto.GetComponent<TextMeshProUGUI>();
             }
         }
 
         if (textoContador != null)
         {
             textoContador.text =
-                objetosColetadosTotais +
-                "/" +
-                limiteMaximoObjetos;
+                objetosColetadosTotais + "/" + limiteMaximoObjetos;
         }
     }
 
@@ -337,39 +271,37 @@ public class Coletavel : MonoBehaviour
         if (TryGetComponent<Collider2D>(out Collider2D colisor2D))
             colisor2D.enabled = false;
 
-        if (duracaoAnimacaoSumir <= 0f)
+        if (duracaoAnimacaoSumir > 0f)
         {
-            transform.localScale = Vector3.zero;
+            float tempoDecorrido = 0f;
 
-            Destroy(gameObject);
+            while (tempoDecorrido < duracaoAnimacaoSumir)
+            {
+                tempoDecorrido += Time.deltaTime;
 
-            yield break;
-        }
+                float progresso = Mathf.Clamp01(
+                    tempoDecorrido / duracaoAnimacaoSumir
+                );
 
-        float tempoDecorrido = 0f;
+                transform.Rotate(velocidadeRotacao * 10f * Time.deltaTime);
 
-        while (tempoDecorrido < duracaoAnimacaoSumir)
-        {
-            tempoDecorrido += Time.deltaTime;
+                transform.localScale = Vector3.Lerp(
+                    escalaInicial,
+                    Vector3.zero,
+                    progresso
+                );
 
-            float progresso = Mathf.Clamp01(
-                tempoDecorrido / duracaoAnimacaoSumir
-            );
-
-            transform.Rotate(
-                velocidadeRotacao * 10f * Time.deltaTime
-            );
-
-            transform.localScale = Vector3.Lerp(
-                escalaInicial,
-                Vector3.zero,
-                progresso
-            );
-
-            yield return null;
+                yield return null;
+            }
         }
 
         transform.localScale = Vector3.zero;
+
+        if (allCollected)
+        {
+            IrParaVitoria();
+            yield break;
+        }
 
         Destroy(gameObject);
     }

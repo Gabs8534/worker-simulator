@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 5769160474595035620}
   - component: {fileID: 3026634261412451799}
   - component: {fileID: 6999253639396021488}
+  - component: {fileID: 194685661895276581}
   m_Layer: 0
   m_Name: Refri (1)
   m_TagString: Untagged
@@ -149,9 +150,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemClicavel
   flutuar: 1
-  amplitude: 0.2
-  velocidadeFlutuar: 2
-  girarNoChao: 1
+  amplitude: 0.1
+  velocidadeFlutuar: 1
+  girarNoChao: 0
   velocidadeGiro: 50
   distanciaDaCamera: 0.7
   alturaNaCamera: -0.3
@@ -181,3 +182,15 @@ MonoBehaviour:
   camadaDeteccao:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &194685661895276581
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 62905793102597097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c37405c56e3ab9e45a7df9e725acfd7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OlharParaCamera

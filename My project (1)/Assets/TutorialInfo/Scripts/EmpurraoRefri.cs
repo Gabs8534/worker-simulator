@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
@@ -39,9 +38,6 @@ public class EmpurraoRefri : MonoBehaviour
     {
         Debug.Log("TENTANDO EMPURRAR: " + gameObject.name);
 
-        if (sendoEmpurrado)
-            return;
-
         if (agent == null || !agent.enabled)
         {
             Debug.LogWarning("NavMeshAgent não está ativo!");
@@ -59,18 +55,22 @@ public class EmpurraoRefri : MonoBehaviour
         if (direcao.sqrMagnitude < 0.001f || forca <= 0f)
             return;
 
+        // Se já estava sendo empurrado, cancela o empurrão atual
+        // e começa um novo (permite empurrar várias vezes seguidas).
+        if (rotinaAtual != null)
+        {
+            StopCoroutine(rotinaAtual);
+            rotinaAtual = null;
+        }
+
         rotinaAtual = StartCoroutine(
             RotinaEmpurrao(direcao.normalized, forca)
         );
     }
 
-    private IEnumerator RotinaEmpurrao(
-        Vector3 direcao,
-        float forca)
+    private IEnumerator RotinaEmpurrao(Vector3 direcao, float forca)
     {
         sendoEmpurrado = true;
-
-        bool estadoAnterior = agent.isStopped;
 
         agent.isStopped = true;
         agent.ResetPath();
@@ -79,9 +79,7 @@ public class EmpurraoRefri : MonoBehaviour
         float tempo = 0f;
         float distanciaPercorrida = 0f;
 
-        while (
-            tempo < duracao &&
-            distanciaPercorrida < distanciaEmpurrao)
+        while (tempo < duracao && distanciaPercorrida < distanciaEmpurrao)
         {
             if (agent == null ||
                 !agent.enabled ||
@@ -97,12 +95,7 @@ public class EmpurraoRefri : MonoBehaviour
 
             agent.Move(direcao * movimento);
 
-            float deslocamento = Vector3.Distance(
-                antes,
-                transform.position
-            );
-
-            distanciaPercorrida += deslocamento;
+            distanciaPercorrida += Vector3.Distance(antes, transform.position);
             tempo += Time.deltaTime;
 
             yield return null;
@@ -112,7 +105,8 @@ public class EmpurraoRefri : MonoBehaviour
             agent.enabled &&
             agent.isOnNavMesh)
         {
-            agent.isStopped = estadoAnterior;
+            // Sempre volta a andar no fim do empurrão
+            agent.isStopped = false;
         }
 
         sendoEmpurrado = false;
