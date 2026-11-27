@@ -150,7 +150,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemClicavel
   flutuar: 1
-  amplitude: 0.2
+  amplitude: 0.1
   velocidadeFlutuar: 2
   girarNoChao: 1
   velocidadeGiro: 50
@@ -172,8 +172,8 @@ MonoBehaviour:
   valor: 1
   flutuar: 1
   amplitude: 0.1
-  velocidadeFlutuar: 1
-  girarNoChao: 1
+  velocidadeFlutuar: 0.8
+  girarNoChao: 0
   velocidadeGiro: 50
   distanciaDaCamera: 0.7
   alturaNaCamera: -0.3

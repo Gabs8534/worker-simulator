@@ -28,6 +28,9 @@ public class PlayerMovemen : MonoBehaviour
     public float gastoEstamina = 20f;
     public float recargaEstamina = 15f;
 
+    [Tooltip("Se marcado, a estamina só recupera com o jogador parado")]
+    public bool recuperarSoParado = true;
+
     private bool exausto = false;
 
     [Header("Empurrar Objetos")]
@@ -66,8 +69,7 @@ public class PlayerMovemen : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        TravarMouse();
 
         estaminaAtual = estaminaMaxima;
 
@@ -80,18 +82,44 @@ public class PlayerMovemen : MonoBehaviour
         characterController.height = defaultHeight;
     }
 
-    // LIBERA O MOUSE AO SAIR DA CENA / SER DESTRUÍDO
+    // MOUSE
 
-    private void OnDestroy()
+    private void TravarMouse()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    private void LiberarMouse()
     {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+    }
+
+    // Quando a janela do jogo volta a ficar em foco, trava de novo
+    private void OnApplicationFocus(bool temFoco)
+    {
+        if (temFoco && canMove)
+            TravarMouse();
+    }
+
+    // Libera o mouse ao sair da cena / ser destruído (menu e vitória)
+    private void OnDestroy()
+    {
+        LiberarMouse();
     }
 
     // UPDATE
 
     private void Update()
     {
+        // Garante que o mouse fica escondido durante a partida
+        if (canMove &&
+            (Cursor.lockState != CursorLockMode.Locked || Cursor.visible))
+        {
+            TravarMouse();
+        }
+
         MovimentarPlayer();
     }
 
@@ -203,17 +231,25 @@ public class PlayerMovemen : MonoBehaviour
             estaminaAtual > 0f &&
             canMove;
 
+        // Parado = nenhuma tecla de movimento apertada
+        // (GetAxisRaw não tem suavização, então reage na hora)
+        bool parado =
+            !canMove ||
+            (Mathf.Abs(Input.GetAxisRaw("Horizontal")) < 0.01f &&
+             Mathf.Abs(Input.GetAxisRaw("Vertical")) < 0.01f);
+
         if (correndo)
         {
             estaminaAtual -= gastoEstamina * Time.deltaTime;
         }
-        else
+        else if (!recuperarSoParado || parado)
         {
             if (estaminaAtual < estaminaMaxima)
             {
                 estaminaAtual += recargaEstamina * Time.deltaTime;
             }
         }
+        // Andando sem correr: a estamina fica como está (não gasta e não recupera)
 
         estaminaAtual = Mathf.Clamp(estaminaAtual, 0f, estaminaMaxima);
 
@@ -294,8 +330,13 @@ public class PlayerMovemen : MonoBehaviour
 
     public bool PodeMover()
     {
-     return canMove;
+        return canMove;
+    }
+
+    // VASSOURA
+
+    public bool EstaNaVassoura()
+    {
+        return estaNaVassoura;
     }
 }
-
-    //

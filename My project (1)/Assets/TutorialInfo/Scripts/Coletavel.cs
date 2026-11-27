@@ -26,7 +26,7 @@ public class Coletavel : MonoBehaviour
     public int cadernosParaMundoVermelho = 7;
 
     [Header("Vitória")]
-    public string nomeCenaVitoria = "TelaVitoria";
+    public string nomeCenaVitoria = "Vitoria";
 
     private Vector3 posicaoInicial;
     private bool coletado = false;
@@ -125,6 +125,15 @@ public class Coletavel : MonoBehaviour
             limiteMaximoObjetos
         );
 
+        // VITÓRIA (fica antes das portas e dos perseguidores,
+        // para nenhum erro ali impedir a vitória)
+        if (objetosColetadosTotais >= limiteMaximoObjetos && !allCollected)
+        {
+            allCollected = true;
+            Debug.Log("10 CADERNOS COLETADOS! VITÓRIA!");
+            StartCoroutine(RotinaVitoria());
+        }
+
         // ABRIR PAREDE INICIAL
         if (objetosColetadosTotais >= itensParaAbrirParedeInicio &&
             paredeBloqueioInicio != null)
@@ -166,12 +175,6 @@ public class Coletavel : MonoBehaviour
             }
         }
 
-        // VITÓRIA
-        if (objetosColetadosTotais >= limiteMaximoObjetos && !allCollected)
-        {
-            TriggerEndgame();
-        }
-
         StartCoroutine(AnimacaoColeta());
     }
 
@@ -211,21 +214,25 @@ public class Coletavel : MonoBehaviour
     // VITÓRIA
     // =====================================================
 
-    private void TriggerEndgame()
+    private IEnumerator RotinaVitoria()
     {
-        allCollected = true;
-        Debug.Log("10 CADERNOS COLETADOS! VITÓRIA!");
+        // WaitForSecondsRealtime funciona mesmo com Time.timeScale = 0
+        yield return new WaitForSecondsRealtime(0.6f);
+        IrParaVitoria();
     }
 
     private void IrParaVitoria()
     {
+        Debug.Log("CARREGANDO CENA: " + nomeCenaVitoria);
+
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
         SceneManager.LoadScene(nomeCenaVitoria);
     }
 
-    // Chame antes de começar uma nova partida (no Jogar() do menu)
+    // Chame no Jogar() do menu, antes de carregar a cena do jogo
     public static void ResetarEstado()
     {
         objetosColetadosTotais = 0;
@@ -297,12 +304,8 @@ public class Coletavel : MonoBehaviour
 
         transform.localScale = Vector3.zero;
 
-        if (allCollected)
-        {
-            IrParaVitoria();
-            yield break;
-        }
-
-        Destroy(gameObject);
+        // No último caderno não destrói o objeto: a RotinaVitoria roda nele
+        if (!allCollected)
+            Destroy(gameObject);
     }
 }

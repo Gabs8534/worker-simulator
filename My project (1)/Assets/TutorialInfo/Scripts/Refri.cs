@@ -4,16 +4,18 @@ using System.Collections.Generic;
 public class Refri : MonoBehaviour
 {
     [Header("Configuração do Spray")]
-    [Tooltip("Alcance máximo do jato, em metros")]
+    [Tooltip("Alcance máximo do empurrão, em metros")]
     public float distancia = 25f;
     public float forca = 20f;
     public float velocidadeJato = 20f;
 
-    [Tooltip("Folga ao redor do jato e do inimigo para contar como acerto")]
-    public float raioAcerto = 1f;
+    [Range(1f, 90f)]
+    public float anguloJato = 30f;
 
     [Header("Visual do Spray")]
     public GameObject efeitoJato;
+    [Tooltip("Tempo mínimo que o jato fica visível")]
+    public float duracaoJato = 1f;
     public float distanciaInicialJato = 0.5f;
 
     [Header("Som")]
@@ -23,12 +25,11 @@ public class Refri : MonoBehaviour
     public bool empurrarSweep = true;
     public bool empurrarPerseguidor = true;
 
-    [Header("Detecção")]
-    public LayerMask camadaDeteccao = ~0;
+    [Header("Paredes")]
+    [Tooltip("Camadas que bloqueiam o spray")]
+    public LayerMask camadaParedes = ~0;
 
     private Camera cameraPrincipal;
-    private Sweep[] sweeps = new Sweep[0];
-    private Perseguidor[] perseguidores = new Perseguidor[0];
 
     public void Usar()
     {
@@ -40,21 +41,40 @@ public class Refri : MonoBehaviour
             return;
         }
 
-        // Lista de inimigos atualizada a cada tiro
-        sweeps = FindObjectsByType<Sweep>(FindObjectsSortMode.None);
-        perseguidores = FindObjectsByType<Perseguidor>(FindObjectsSortMode.None);
-
         Vector3 origem = cameraPrincipal.transform.position;
         Vector3 direcao = cameraPrincipal.transform.forward.normalized;
+        Transform raizJogador = cameraPrincipal.transform.root;
 
-        Debug.Log("REFRI USADO! Inimigos na cena: " +
-                  (sweeps.Length + perseguidores.Length));
+        Debug.Log("REFRI USADO!");
 
         if (som != null)
         {
             AudioSource.PlayClipAtPoint(som, origem);
         }
 
+        // ALVOS (cada um com o momento em que o jato chega nele)
+        List<SprayMovimento.Alvo> alvos = new List<SprayMovimento.Alvo>();
+
+        if (empurrarSweep)
+        {
+            foreach (Sweep s in FindObjectsByType<Sweep>(FindObjectsSortMode.None))
+            {
+                TestarInimigo(s, origem, direcao, raizJogador, alvos);
+            }
+        }
+
+        if (empurrarPerseguidor)
+        {
+            foreach (Perseguidor p in FindObjectsByType<Perseguidor>(FindObjectsSortMode.None))
+            {
+                TestarInimigo(p, origem, direcao, raizJogador, alvos);
+            }
+        }
+
+        // OBJETOS COM RIGIDBODY
+        TestarCorpos(origem, direcao, raizJogador, alvos);
+
+        // CRIAR O JATO
         Vector3 posicaoInicial = origem + direcao * distanciaInicialJato;
         GameObject jato;
 
@@ -80,119 +100,110 @@ public class Refri : MonoBehaviour
             jato.transform.rotation = Quaternion.LookRotation(direcao);
         }
 
-        SprayMovimento movimento = jato.AddComponent<SprayMovimento>();
-
-        movimento.Configurar(
-            this,
-            origem,
-            direcao,
-            velocidadeJato,
-            distancia / Mathf.Max(velocidadeJato, 0.01f),
-            cameraPrincipal.transform.root
+        // Duração: no mínimo duracaoJato, ou o tempo de chegar no alcance
+        float duracao = Mathf.Max(
+            duracaoJato,
+            distancia / Mathf.Max(velocidadeJato, 0.01f)
         );
-    }
 
-    // =====================================================
-    // OBSTÁCULOS (o jato para ao bater neles)
-    // =====================================================
-
-    public bool EhObstaculo(Collider col, Transform jato, Transform raizJogador)
-    {
-        if (col == null || col.isTrigger)
-            return false;
-
-        if (col.transform.IsChildOf(jato))
-            return false;
-
-        if (col.transform.IsChildOf(raizJogador))
-            return false;
-
-        if (EhAlvo(col))
-            return false;
-
-        return true;
-    }
-
-    private bool EhAlvo(Collider col)
-    {
-        if (col.GetComponentInParent<Sweep>() != null)
-            return true;
-
-        if (col.GetComponentInParent<Perseguidor>() != null)
-            return true;
-
-        Rigidbody rb = col.attachedRigidbody;
-
-        if (rb != null && !rb.isKinematic)
-            return true;
-
-        // Collider que está dentro da área de algum inimigo
-        foreach (Sweep s in sweeps)
+        // Se tem inimigo, o jato dura pelo menos até o impacto
+        foreach (SprayMovimento.Alvo alvo in alvos)
         {
-            if (s != null && ObterBounds(s).Intersects(col.bounds))
-                return true;
+            duracao = Mathf.Max(duracao, alvo.tempoImpacto + 0.1f);
         }
 
-        foreach (Perseguidor p in perseguidores)
-        {
-            if (p != null && ObterBounds(p).Intersects(col.bounds))
-                return true;
-        }
-
-        return false;
+        SprayMovimento movimento = jato.AddComponent<SprayMovimento>();
+        movimento.Configurar(direcao, velocidadeJato, duracao, alvos);
     }
 
     // =====================================================
-    // ACERTOS
+    // DETECÇÃO DE INIMIGOS
     // =====================================================
 
-    // Chamado pelo jato a cada frame, com o trecho que ele acabou de percorrer.
-    public void ProcessarAcerto(
-        Vector3 de,
-        Vector3 ate,
+    private void TestarInimigo(
+        Component inimigo,
         Vector3 origem,
         Vector3 direcao,
-        Transform jato,
         Transform raizJogador,
-        HashSet<int> detectados)
+        List<SprayMovimento.Alvo> alvos)
     {
+        if (inimigo == null)
+            return;
+
+        Bounds caixa = ObterBounds(inimigo);
+
+        Vector3 paraAlvo = caixa.center - origem;
+        float distanciaAlvo = paraAlvo.magnitude;
+
+        if (distanciaAlvo < 0.01f)
+            return;
+
+        if (distanciaAlvo > distancia)
+        {
+            Debug.Log("REFRI: " + inimigo.name + " longe demais (" +
+                      distanciaAlvo.ToString("F1") + " m)");
+            return;
+        }
+
+        // O ângulo aceito cresce com o tamanho do inimigo
+        float margem =
+            Mathf.Atan2(caixa.extents.magnitude, distanciaAlvo) * Mathf.Rad2Deg;
+
+        float angulo = Vector3.Angle(direcao, paraAlvo.normalized);
+
+        if (angulo > anguloJato + margem)
+        {
+            Debug.Log("REFRI: " + inimigo.name + " fora do cone (" +
+                      angulo.ToString("F0") + "°)");
+            return;
+        }
+
+        if (ParedeNoCaminho(origem, caixa, inimigo, raizJogador))
+        {
+            Debug.Log("REFRI: " + inimigo.name + " bloqueado por parede");
+            return;
+        }
+
+        float multiplicador = 1f - Mathf.Clamp01(distanciaAlvo / distancia);
+        float forcaFinal = forca * Mathf.Max(multiplicador, 0.3f);
+
         Vector3 direcaoPlana = direcao;
         direcaoPlana.y = 0f;
 
-        // INIMIGOS (detecção pela caixa do inimigo, sem depender de collider)
-        if (empurrarSweep)
-        {
-            foreach (Sweep s in sweeps)
-            {
-                if (s != null)
-                    TestarInimigo(s, de, ate, origem, direcaoPlana, detectados);
-            }
-        }
+        float tempoImpacto =
+            Mathf.Max(0f, distanciaAlvo - distanciaInicialJato) /
+            Mathf.Max(velocidadeJato, 0.01f);
 
-        if (empurrarPerseguidor)
-        {
-            foreach (Perseguidor p in perseguidores)
-            {
-                if (p != null)
-                    TestarInimigo(p, de, ate, origem, direcaoPlana, detectados);
-            }
-        }
+        Debug.Log("REFRI: " + inimigo.name + " será atingido em " +
+                  tempoImpacto.ToString("F2") + " s");
 
-        // OBJETOS COM RIGIDBODY
-        Collider[] objetos = Physics.OverlapCapsule(
-            de,
-            ate,
-            raioAcerto,
-            camadaDeteccao,
-            QueryTriggerInteraction.Collide
+        alvos.Add(new SprayMovimento.Alvo
+        {
+            inimigo = inimigo,
+            direcao = direcaoPlana,
+            forca = forcaFinal,
+            tempoImpacto = tempoImpacto
+        });
+    }
+
+    private void TestarCorpos(
+        Vector3 origem,
+        Vector3 direcao,
+        Transform raizJogador,
+        List<SprayMovimento.Alvo> alvos)
+    {
+        Collider[] objetos = Physics.OverlapSphere(
+            origem,
+            distancia,
+            ~0,
+            QueryTriggerInteraction.Ignore
         );
+
+        HashSet<int> vistos = new HashSet<int>();
 
         foreach (Collider objeto in objetos)
         {
             if (objeto == null)
-                continue;
-
-            if (objeto.transform.IsChildOf(jato))
                 continue;
 
             if (objeto.transform.IsChildOf(raizJogador))
@@ -204,50 +215,77 @@ public class Refri : MonoBehaviour
 
             Rigidbody corpo = objeto.attachedRigidbody;
 
-            if (corpo != null && !corpo.isKinematic)
-            {
-                if (!detectados.Add(corpo.GetInstanceID()))
-                    continue;
+            if (corpo == null || corpo.isKinematic)
+                continue;
 
-                float forcaFinal = CalcularForca(origem, objeto.bounds.center);
-                corpo.AddForce(direcao * forcaFinal, ForceMode.Impulse);
-            }
+            if (!vistos.Add(corpo.GetInstanceID()))
+                continue;
+
+            Vector3 paraAlvo = objeto.bounds.center - origem;
+            float distanciaAlvo = paraAlvo.magnitude;
+
+            if (distanciaAlvo < 0.01f)
+                continue;
+
+            if (Vector3.Angle(direcao, paraAlvo.normalized) > anguloJato)
+                continue;
+
+            float multiplicador = 1f - Mathf.Clamp01(distanciaAlvo / distancia);
+
+            alvos.Add(new SprayMovimento.Alvo
+            {
+                corpo = corpo,
+                direcao = direcao,
+                forca = forca * Mathf.Max(multiplicador, 0.2f),
+                tempoImpacto =
+                    Mathf.Max(0f, distanciaAlvo - distanciaInicialJato) /
+                    Mathf.Max(velocidadeJato, 0.01f)
+            });
         }
     }
 
-    private void TestarInimigo(
-        Component inimigo,
-        Vector3 de,
-        Vector3 ate,
+    // Parede entre o jogador e o inimigo (ignora o jogador e o próprio inimigo)
+    private bool ParedeNoCaminho(
         Vector3 origem,
-        Vector3 direcaoPlana,
-        HashSet<int> detectados)
+        Bounds caixa,
+        Component inimigo,
+        Transform raizJogador)
     {
-        int id = inimigo.GetInstanceID();
+        Vector3 paraAlvo = caixa.center - origem;
+        float distanciaAlvo = paraAlvo.magnitude;
 
-        if (detectados.Contains(id))
-            return;
+        RaycastHit[] batidas = Physics.RaycastAll(
+            origem,
+            paraAlvo.normalized,
+            distanciaAlvo,
+            camadaParedes,
+            QueryTriggerInteraction.Ignore
+        );
 
-        Bounds caixa = ObterBounds(inimigo);
+        foreach (RaycastHit batida in batidas)
+        {
+            Collider col = batida.collider;
 
-        Vector3 pontoMaisPerto = PontoMaisPertoNoSegmento(de, ate, caixa.center);
+            if (col.transform.IsChildOf(raizJogador))
+                continue;
 
-        if (caixa.SqrDistance(pontoMaisPerto) > raioAcerto * raioAcerto)
-            return;
+            if (col.GetComponentInParent<Sweep>() != null ||
+                col.GetComponentInParent<Perseguidor>() != null)
+                continue;
 
-        detectados.Add(id);
+            // Collider que faz parte do corpo do inimigo
+            if (caixa.Intersects(col.bounds) &&
+                col.transform.IsChildOf(inimigo.transform.root))
+                continue;
 
-        float forcaFinal = CalcularForca(origem, caixa.center);
+            // Objetos soltos (Rigidbody móvel) não bloqueiam
+            if (col.attachedRigidbody != null && !col.attachedRigidbody.isKinematic)
+                continue;
 
-        EmpurrarInimigo(inimigo, direcaoPlana, forcaFinal);
-    }
+            return true;
+        }
 
-    private float CalcularForca(Vector3 origem, Vector3 alvo)
-    {
-        float distanciaAlvo = Vector3.Distance(origem, alvo);
-        float multiplicador = 1f - Mathf.Clamp01(distanciaAlvo / distancia);
-
-        return forca * Mathf.Max(multiplicador, 0.3f);
+        return false;
     }
 
     // Caixa que cobre colliders e renderers do inimigo (mínimo 1 x 2 x 1 m)
@@ -271,21 +309,15 @@ public class Refri : MonoBehaviour
         return caixa;
     }
 
-    private Vector3 PontoMaisPertoNoSegmento(Vector3 a, Vector3 b, Vector3 p)
+    // =====================================================
+    // EMPURRÃO
+    // =====================================================
+
+    public static void EmpurrarInimigo(Component inimigo, Vector3 direcao, float forcaFinal)
     {
-        Vector3 ab = b - a;
-        float tamanho = ab.sqrMagnitude;
+        if (inimigo == null)
+            return;
 
-        if (tamanho < 0.0001f)
-            return a;
-
-        float t = Mathf.Clamp01(Vector3.Dot(p - a, ab) / tamanho);
-
-        return a + ab * t;
-    }
-
-    private void EmpurrarInimigo(Component inimigo, Vector3 direcao, float forcaFinal)
-    {
         EmpurraoRefri empurrao = inimigo.GetComponent<EmpurraoRefri>();
 
         if (empurrao == null)
@@ -319,84 +351,61 @@ public class Refri : MonoBehaviour
     }
 }
 
-// MOVIMENTO DO JATO + DETECÇÃO DE ACERTO
+// MOVIMENTO DO JATO + EMPURRÃO NO MOMENTO DO IMPACTO
 public class SprayMovimento : MonoBehaviour
 {
-    private Refri refri;
-    private Vector3 origem;
+    public class Alvo
+    {
+        public Component inimigo;
+        public Rigidbody corpo;
+        public Vector3 direcao;
+        public float forca;
+        public float tempoImpacto;
+        public bool aplicado;
+    }
+
     private Vector3 direcao;
-    private Transform raizJogador;
     private float velocidade;
     private float duracao;
     private float tempo;
-
-    private HashSet<int> detectados = new HashSet<int>();
+    private List<Alvo> alvos;
 
     public void Configurar(
-        Refri novoRefri,
-        Vector3 novaOrigem,
         Vector3 novaDirecao,
         float novaVelocidade,
         float novaDuracao,
-        Transform novaRaizJogador)
+        List<Alvo> novosAlvos)
     {
-        refri = novoRefri;
-        origem = novaOrigem;
         direcao = novaDirecao.normalized;
         velocidade = novaVelocidade;
         duracao = novaDuracao;
-        raizJogador = novaRaizJogador;
+        alvos = novosAlvos;
     }
 
     private void Update()
     {
-        Vector3 anterior = transform.position;
-        Vector3 destino = anterior + direcao * velocidade * Time.deltaTime;
-        bool bateuParede = false;
-
-        if (refri != null)
-        {
-            float tamanhoTrecho = Vector3.Distance(anterior, destino);
-
-            RaycastHit[] batidas = Physics.RaycastAll(
-                anterior,
-                direcao,
-                tamanhoTrecho,
-                refri.camadaDeteccao,
-                QueryTriggerInteraction.Ignore
-            );
-
-            float menorDistancia = float.MaxValue;
-
-            foreach (RaycastHit batida in batidas)
-            {
-                if (!refri.EhObstaculo(batida.collider, transform, raizJogador))
-                    continue;
-
-                if (batida.distance < menorDistancia)
-                {
-                    menorDistancia = batida.distance;
-                    destino = batida.point;
-                    bateuParede = true;
-                }
-            }
-
-            refri.ProcessarAcerto(
-                anterior,
-                destino,
-                origem,
-                direcao,
-                transform,
-                raizJogador,
-                detectados
-            );
-        }
-
-        transform.position = destino;
+        transform.position += direcao * velocidade * Time.deltaTime;
 
         tempo += Time.deltaTime;
 
-        if (bateuParede || tempo >= duracao)
+        foreach (Alvo alvo in alvos)
+        {
+            if (alvo.aplicado || tempo < alvo.tempoImpacto)
+                continue;
+
+            alvo.aplicado = true;
+
+            if (alvo.inimigo != null)
+            {
+                Refri.EmpurrarInimigo(alvo.inimigo, alvo.direcao, alvo.forca);
+            }
+            else if (alvo.corpo != null)
+            {
+                alvo.corpo.AddForce(alvo.direcao * alvo.forca, ForceMode.Impulse);
+            }
+        }
+
+        if (tempo >= duracao)
         {
             Destroy(gameObject);
         }
